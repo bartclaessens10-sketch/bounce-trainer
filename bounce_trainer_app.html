@@ -7,26 +7,29 @@
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f7f7f5; color: #1a1a1a; min-height: 100vh; }
-.app { max-width: 480px; margin: 0 auto; padding: 1.5rem 1rem; }
+.app { max-width: 480px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
 .screen { display: none; }
 .screen.active { display: block; }
 h1 { font-size: 22px; font-weight: 600; margin-bottom: 4px; }
 .sub { font-size: 14px; color: #666; margin-bottom: 1.5rem; }
 .trainer-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 1rem; }
-.trainer-btn { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 14px; text-align: left; cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s; }
-.trainer-btn:hover { border-color: #aaa; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.trainer-btn { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 14px; text-align: left; cursor: pointer; transition: border-color 0.15s; }
+.trainer-btn:hover { border-color: #aaa; }
 .trainer-name { font-size: 15px; font-weight: 600; }
 .trainer-count { font-size: 12px; color: #888; margin-top: 2px; }
 .back-btn { background: none; border: none; color: #666; font-size: 14px; cursor: pointer; padding: 0; margin-bottom: 1rem; display: flex; align-items: center; gap: 4px; }
 .week-pill { background: #eef2ff; border-radius: 8px; padding: 8px 14px; margin-bottom: 1rem; font-size: 13px; color: #3730a3; }
 .groep-card { background: #fff; border: 1px solid #e8e8e8; border-radius: 14px; padding: 14px; margin-bottom: 12px; }
-.groep-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
-.groep-meta .groep-title { font-size: 14px; font-weight: 600; }
-.groep-meta .groep-time { font-size: 12px; color: #888; margin-top: 2px; }
-.les-toggle { display: flex; gap: 6px; }
-.les-btn { font-size: 11px; padding: 5px 10px; border-radius: 8px; border: 1px solid #ddd; background: #f5f5f5; color: #555; cursor: pointer; white-space: nowrap; transition: all 0.15s; }
+.groep-header { margin-bottom: 10px; }
+.groep-title { font-size: 14px; font-weight: 600; }
+.groep-time { font-size: 12px; color: #888; margin-top: 2px; }
+.les-toggle { display: flex; gap: 6px; margin-top: 10px; }
+.les-btn { font-size: 12px; padding: 7px 12px; border-radius: 8px; border: 1px solid #ddd; background: #f5f5f5; color: #555; cursor: pointer; flex: 1; text-align: center; transition: all 0.15s; }
 .les-btn.yes { background: #dcfce7; border-color: #16a34a; color: #15803d; font-weight: 600; }
 .les-btn.no { background: #fee2e2; border-color: #dc2626; color: #b91c1c; font-weight: 600; }
+.vervanger-wrap { margin-top: 10px; }
+.vervanger-label { font-size: 12px; color: #888; margin-bottom: 4px; }
+.vervanger-select { width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid #ddd; background: #fff; font-size: 13px; color: #1a1a1a; }
 .divider { height: 1px; background: #f0f0f0; margin: 10px 0; }
 .speler-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; }
 .speler-naam { font-size: 13px; }
@@ -34,34 +37,36 @@ h1 { font-size: 22px; font-weight: 600; margin-bottom: 4px; }
 .aanw-btn { font-size: 11px; padding: 4px 9px; border-radius: 6px; border: 1px solid #e0e0e0; background: #fafafa; color: #666; cursor: pointer; transition: all 0.15s; }
 .aanw-btn.aanwezig { background: #dcfce7; border-color: #16a34a; color: #15803d; font-weight: 600; }
 .aanw-btn.afwezig { background: #fee2e2; border-color: #dc2626; color: #b91c1c; font-weight: 600; }
-.geen-groepen { padding: 2rem 0; text-align: center; color: #888; font-size: 14px; }
+.geen-groepen { padding: 2rem 0; text-align: center; color: #888; font-size: 14px; line-height: 1.6; }
+.dag-select-wrap { margin-bottom: 1.5rem; }
+.dag-select-label { font-size: 13px; color: #666; margin-bottom: 6px; }
+.dag-select { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid #ddd; background: #fff; font-size: 14px; color: #1a1a1a; }
 .submit-wrap { padding: 1rem 0 0.5rem; margin-top: 0.5rem; }
-.submit-btn { width: 100%; padding: 14px; border-radius: 12px; border: none; background: #1a1a1a; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; transition: opacity 0.15s; }
-.submit-btn:hover { opacity: 0.85; }
-.submit-btn:disabled { background: #ccc; cursor: default; opacity: 1; }
+.submit-btn { width: 100%; padding: 14px; border-radius: 12px; border: none; background: #1a1a1a; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; }
+.submit-btn:disabled { background: #ccc; cursor: default; }
 .confirm-wrap { margin-top: 3rem; text-align: center; }
 .confirm-icon { font-size: 48px; margin-bottom: 1rem; }
 .confirm-title { font-size: 20px; font-weight: 600; margin-bottom: 8px; }
 .confirm-sub { font-size: 14px; color: #666; line-height: 1.6; }
 .confirm-new { margin-top: 2rem; background: none; border: 1px solid #ddd; border-radius: 10px; padding: 10px 20px; font-size: 14px; cursor: pointer; color: #333; }
-.loading { text-align: center; padding: 1rem; font-size: 14px; color: #888; }
 </style>
 </head>
 <body>
 <div class="app">
 
-  <!-- LOGIN -->
   <div id="screen-login" class="screen active">
     <h1>Bounce</h1>
     <p class="sub">Wie ben je?</p>
     <div class="trainer-grid" id="trainer-grid"></div>
   </div>
 
-  <!-- LESSEN -->
   <div id="screen-lessen" class="screen">
     <button class="back-btn" onclick="goBack()">← Terug</button>
     <h1 id="trainer-naam-display"></h1>
-    <p class="sub" id="trainer-sub-display"></p>
+    <div class="dag-select-wrap">
+      <div class="dag-select-label">Selecteer trainingsdag</div>
+      <select class="dag-select" id="dag-select" onchange="onDagChange()"></select>
+    </div>
     <div class="week-pill" id="week-pill-display"></div>
     <div id="groepen-container"></div>
     <div class="submit-wrap">
@@ -69,7 +74,6 @@ h1 { font-size: 22px; font-weight: 600; margin-bottom: 4px; }
     </div>
   </div>
 
-  <!-- BEVESTIGING -->
   <div id="screen-confirm" class="screen">
     <div class="confirm-wrap">
       <div class="confirm-icon">✓</div>
@@ -80,12 +84,18 @@ h1 { font-size: 22px; font-weight: 600; margin-bottom: 4px; }
   </div>
 
 </div>
-
 <script>
 // ============================================================
-// CONFIGURATIE – pas hier aan indien nodig
+// CONFIGURATIE
 // ============================================================
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzYmFslgnzRMWKiOUU-ogJyKhaTsCkL7waTfgdbmGWftMLcOjowLp3qcvGkWLLixrG0/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyvjYqUT3b5IRYtH4YbpH2-y3w2RcfEWtPuZERnHCTtsEm9tzMByLf87hUp9HdKR7mN/exec';
+
+const SEIZOEN_START = new Date("2026-04-20");
+const FEESTDAGEN = {
+  "2026-05-01": true,
+  "2026-05-14": true,
+  "2026-05-25": true
+};
 
 const DATA = {
   trainers: ["Tom","Bekin","Steffi","Amir","Luna","Nicky","Jan","Matt","Jebbe","Jolien","Laura","Jo","Geert","Thibaud"],
@@ -134,21 +144,49 @@ const DATA = {
 };
 // ============================================================
 
+const DAG_NAMEN = ["Zondag","Maandag","Dinsdag","Woensdag","Donderdag","Vrijdag","Zaterdag"];
+const DAG_NR = {Maandag:1,Dinsdag:2,Woensdag:3,Donderdag:4,Vrijdag:5,Zaterdag:6,Zondag:0};
 let huidigeTrainer = "";
-let huidigeDag = "";
 let registraties = {};
 
-function getHuidigeDag() {
-  const d = new Date();
-  return ["Zondag","Maandag","Dinsdag","Woensdag","Donderdag","Vrijdag","Zaterdag"][d.getDay()];
+function datumVoorDag(dagNaam, vanafVandaag) {
+  const target = DAG_NR[dagNaam];
+  const nu = vanafVandaag ? new Date() : new Date(SEIZOEN_START);
+  const d = new Date(nu);
+  if (vanafVandaag) {
+    const diff = (target - d.getDay() + 7) % 7;
+    d.setDate(d.getDate() + diff);
+  } else {
+    while (d.getDay() !== target) d.setDate(d.getDate() + 1);
+  }
+  return d;
 }
 
-function getWeekInfo() {
-  const start = new Date("2026-04-20");
+function isFeestdag(d) {
+  const key = d.toISOString().slice(0,10);
+  return FEESTDAGEN[key] || false;
+}
+
+function formatDatum(d) {
+  return d.toLocaleDateString("nl-BE", { weekday: "long", day: "numeric", month: "long" });
+}
+
+function getWeekNummer(d) {
+  const diff = Math.floor((d - SEIZOEN_START) / (7 * 24 * 60 * 60 * 1000));
+  if (diff < 0 || diff > 11) return null;
+  return diff + 1;
+}
+
+function getTrainerDagen(trainer) {
+  const dagen = [...new Set(DATA.groepen.filter(g => g.trainer === trainer).map(g => g.dag))];
+  const result = [];
   const nu = new Date();
-  const diff = Math.floor((nu - start) / (7 * 24 * 60 * 60 * 1000));
-  if (diff < 0 || diff > 9) return { week: null, label: "Buiten seizoen" };
-  return { week: diff + 1, label: `Week ${diff + 1} van 10` };
+  dagen.forEach(dag => {
+    const d = datumVoorDag(dag, true);
+    if (!isFeestdag(d)) result.push({ dag, datum: d });
+  });
+  result.sort((a, b) => a.datum - b.datum);
+  return result;
 }
 
 function buildTrainerGrid() {
@@ -166,42 +204,74 @@ function buildTrainerGrid() {
 
 function selectTrainer(naam) {
   huidigeTrainer = naam;
-  huidigeDag = getHuidigeDag();
-  const weekInfo = getWeekInfo();
   document.getElementById("trainer-naam-display").textContent = naam;
-  document.getElementById("trainer-sub-display").textContent = huidigeDag;
-  document.getElementById("week-pill-display").textContent = weekInfo.label + " · " + huidigeDag;
-  buildGroepenView();
+
+  const dagSelect = document.getElementById("dag-select");
+  dagSelect.innerHTML = "";
+  const dagen = getTrainerDagen(naam);
+
+  if (!dagen.length) {
+    dagSelect.innerHTML = "<option>Geen trainingen gevonden</option>";
+  } else {
+    dagen.forEach((item, i) => {
+      const opt = document.createElement("option");
+      opt.value = item.dag + "|" + item.datum.toISOString();
+      opt.textContent = formatDatum(item.datum);
+      dagSelect.appendChild(opt);
+    });
+  }
+
+  onDagChange();
   showScreen("screen-lessen");
 }
 
-function buildGroepenView() {
+function onDagChange() {
+  const val = document.getElementById("dag-select").value;
+  if (!val || val.indexOf("|") === -1) return;
+  const [dag, datumStr] = val.split("|");
+  const datum = new Date(datumStr);
+  const week = getWeekNummer(datum);
+  document.getElementById("week-pill-display").textContent =
+    week ? `Week ${week} van 10 · ${formatDatum(datum)}` : formatDatum(datum);
+  buildGroepenView(dag);
+}
+
+function buildGroepenView(dag) {
   const container = document.getElementById("groepen-container");
   container.innerHTML = "";
   registraties = {};
-  const groepen = DATA.groepen.filter(g => g.trainer === huidigeTrainer && g.dag === huidigeDag);
+  const groepen = DATA.groepen.filter(g => g.trainer === huidigeTrainer && g.dag === dag);
 
   if (!groepen.length) {
-    container.innerHTML = `<div class="geen-groepen">Geen groepen ingepland voor ${huidigeDag}.</div>`;
+    container.innerHTML = `<div class="geen-groepen">Geen groepen voor ${dag}.</div>`;
     return;
   }
 
   groepen.forEach(g => {
-    registraties[g.id] = { id: g.id, tijd: g.tijd, lesGegeven: null, aanwezig: {} };
+    registraties[g.id] = { id: g.id, dag: g.dag, tijd: g.tijd, trainer: huidigeTrainer, vervanger: null, lesGegeven: null, aanwezig: {} };
     g.spelers.forEach(s => registraties[g.id].aanwezig[s] = null);
 
     const card = document.createElement("div");
     card.className = "groep-card";
+
+    const vervOpts = DATA.trainers.map(t =>
+      `<option value="${t}" ${t === huidigeTrainer ? "selected" : ""}>${t}</option>`
+    ).join("");
+
     card.innerHTML = `
       <div class="groep-header">
-        <div class="groep-meta">
-          <div class="groep-title">Groep ${g.id}</div>
-          <div class="groep-time">${g.dag} · ${g.tijd}</div>
-        </div>
-        <div class="les-toggle">
-          <button class="les-btn" id="les-yes-${g.id}" onclick="setLes(${g.id},'yes')">Les gegeven</button>
-          <button class="les-btn" id="les-no-${g.id}" onclick="setLes(${g.id},'no')">Geen les</button>
-        </div>
+        <div class="groep-title">Groep ${g.id}</div>
+        <div class="groep-time">${g.dag} · ${g.tijd}</div>
+      </div>
+      <div class="les-toggle">
+        <button class="les-btn" id="les-yes-${g.id}" onclick="setLes(${g.id},'yes')">Les gegeven</button>
+        <button class="les-btn" id="les-no-${g.id}" onclick="setLes(${g.id},'no')">Geen les</button>
+      </div>
+      <div class="vervanger-wrap">
+        <div class="vervanger-label">Trainer die de les geeft</div>
+        <select class="vervanger-select" id="vervanger-${g.id}" onchange="setVervanger(${g.id}, this.value)">
+          ${vervOpts}
+        </select>
       </div>
       <div class="divider"></div>
       ${g.spelers.map(s => {
@@ -225,6 +295,10 @@ function setLes(id, val) {
   document.getElementById(`les-no-${id}`).className = "les-btn" + (val === "no" ? " no" : "");
 }
 
+function setVervanger(id, val) {
+  registraties[id].vervanger = val;
+}
+
 function setAanwezig(id, speler, val) {
   registraties[id].aanwezig[speler] = val;
   const k = speler.replace(/[^a-zA-Z0-9]/g, '_');
@@ -237,37 +311,31 @@ async function submitRegistratie() {
   btn.disabled = true;
   btn.textContent = "Versturen...";
 
-  const weekInfo = getWeekInfo();
+  const val = document.getElementById("dag-select").value;
+  const [dag, datumStr] = val.split("|");
+  const datum = new Date(datumStr);
+  const week = getWeekNummer(datum);
+
   const payload = {
     trainer: huidigeTrainer,
-    dag: huidigeDag,
-    week: weekInfo.week,
+    dag,
+    datum: datum.toLocaleDateString("nl-BE", { day: "numeric", month: "long", year: "numeric" }),
+    week: week || "?",
     groepen: Object.values(registraties)
   };
 
   try {
-    await fetch(APPS_SCRIPT_URL, {
-      method: "POST",
-      body: JSON.stringify(payload)
-    });
-  } catch (e) {
-    // Stil falen – registratie is toch lokaal opgeslagen
-  }
+    await fetch(APPS_SCRIPT_URL, { method: "POST", body: JSON.stringify(payload) });
+  } catch(e) {}
 
   const lessenGegeven = Object.values(registraties).filter(g => g.lesGegeven === "yes").length;
-  let aanwezigen = 0;
-  Object.values(registraties).forEach(g => {
-    Object.values(g.aanwezig).forEach(v => { if (v === "ja") aanwezigen++; });
-  });
-
   document.getElementById("confirm-text").textContent =
-    `${huidigeTrainer} · ${huidigeDag} · ${lessenGegeven} les${lessenGegeven !== 1 ? "sen" : ""} geregistreerd · ${aanwezigen} aanwezige${aanwezigen !== 1 ? "n" : ""}`;
+    `${huidigeTrainer} · ${datum.toLocaleDateString("nl-BE", {day:"numeric",month:"long"})} · ${lessenGegeven} les${lessenGegeven !== 1 ? "sen" : ""} geregistreerd`;
 
   showScreen("screen-confirm");
 }
 
 function goBack() { showScreen("screen-login"); }
-
 function showScreen(id) {
   document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
   document.getElementById(id).classList.add("active");
