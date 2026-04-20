@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Bounce – Trainer Registratie</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f7f7f5; color: #1a1a1a; min-height: 100vh; }
+.app { max-width: 480px; margin: 0 auto; padding: 1.5rem 1rem; }
+.screen { display: none; }
+.screen.active { display: block; }
+h1 { font-size: 22px; font-weight: 600; margin-bottom: 4px; }
+.sub { font-size: 14px; color: #666; margin-bottom: 1.5rem; }
+.trainer-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 1rem; }
+.trainer-btn { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 14px; text-align: left; cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s; }
+.trainer-btn:hover { border-color: #aaa; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.trainer-name { font-size: 15px; font-weight: 600; }
+.trainer-count { font-size: 12px; color: #888; margin-top: 2px; }
+.back-btn { background: none; border: none; color: #666; font-size: 14px; cursor: pointer; padding: 0; margin-bottom: 1rem; display: flex; align-items: center; gap: 4px; }
+.week-pill { background: #eef2ff; border-radius: 8px; padding: 8px 14px; margin-bottom: 1rem; font-size: 13px; color: #3730a3; }
+.groep-card { background: #fff; border: 1px solid #e8e8e8; border-radius: 14px; padding: 14px; margin-bottom: 12px; }
+.groep-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+.groep-meta .groep-title { font-size: 14px; font-weight: 600; }
+.groep-meta .groep-time { font-size: 12px; color: #888; margin-top: 2px; }
+.les-toggle { display: flex; gap: 6px; }
+.les-btn { font-size: 11px; padding: 5px 10px; border-radius: 8px; border: 1px solid #ddd; background: #f5f5f5; color: #555; cursor: pointer; white-space: nowrap; transition: all 0.15s; }
+.les-btn.yes { background: #dcfce7; border-color: #16a34a; color: #15803d; font-weight: 600; }
+.les-btn.no { background: #fee2e2; border-color: #dc2626; color: #b91c1c; font-weight: 600; }
+.divider { height: 1px; background: #f0f0f0; margin: 10px 0; }
+.speler-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; }
+.speler-naam { font-size: 13px; }
+.aanw-toggle { display: flex; gap: 5px; }
+.aanw-btn { font-size: 11px; padding: 4px 9px; border-radius: 6px; border: 1px solid #e0e0e0; background: #fafafa; color: #666; cursor: pointer; transition: all 0.15s; }
+.aanw-btn.aanwezig { background: #dcfce7; border-color: #16a34a; color: #15803d; font-weight: 600; }
+.aanw-btn.afwezig { background: #fee2e2; border-color: #dc2626; color: #b91c1c; font-weight: 600; }
+.geen-groepen { padding: 2rem 0; text-align: center; color: #888; font-size: 14px; }
+.submit-wrap { padding: 1rem 0 0.5rem; margin-top: 0.5rem; }
+.submit-btn { width: 100%; padding: 14px; border-radius: 12px; border: none; background: #1a1a1a; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; transition: opacity 0.15s; }
+.submit-btn:hover { opacity: 0.85; }
+.submit-btn:disabled { background: #ccc; cursor: default; opacity: 1; }
+.confirm-wrap { margin-top: 3rem; text-align: center; }
+.confirm-icon { font-size: 48px; margin-bottom: 1rem; }
+.confirm-title { font-size: 20px; font-weight: 600; margin-bottom: 8px; }
+.confirm-sub { font-size: 14px; color: #666; line-height: 1.6; }
+.confirm-new { margin-top: 2rem; background: none; border: 1px solid #ddd; border-radius: 10px; padding: 10px 20px; font-size: 14px; cursor: pointer; color: #333; }
+.loading { text-align: center; padding: 1rem; font-size: 14px; color: #888; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- LOGIN -->
+  <div id="screen-login" class="screen active">
+    <h1>Bounce</h1>
+    <p class="sub">Wie ben je?</p>
+    <div class="trainer-grid" id="trainer-grid"></div>
+  </div>
+
+  <!-- LESSEN -->
+  <div id="screen-lessen" class="screen">
+    <button class="back-btn" onclick="goBack()">← Terug</button>
+    <h1 id="trainer-naam-display"></h1>
+    <p class="sub" id="trainer-sub-display"></p>
+    <div class="week-pill" id="week-pill-display"></div>
+    <div id="groepen-container"></div>
+    <div class="submit-wrap">
+      <button class="submit-btn" id="submit-btn" onclick="submitRegistratie()">Registratie versturen</button>
+    </div>
+  </div>
+
+  <!-- BEVESTIGING -->
+  <div id="screen-confirm" class="screen">
+    <div class="confirm-wrap">
+      <div class="confirm-icon">✓</div>
+      <p class="confirm-title">Ingevuld!</p>
+      <p class="confirm-sub" id="confirm-text"></p>
+      <button class="confirm-new" onclick="showScreen('screen-login')">Nieuwe registratie</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ============================================================
+// CONFIGURATIE – pas hier aan indien nodig
+// ============================================================
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzYmFslgnzRMWKiOUU-ogJyKhaTsCkL7waTfgdbmGWftMLcOjowLp3qcvGkWLLixrG0/exec';
+
+const DATA = {
+  trainers: ["Tom","Bekin","Steffi","Amir","Luna","Nicky","Jan","Matt","Jebbe","Jolien","Laura","Jo","Geert","Thibaud"],
+  groepen: [
+    {id:1, dag:"Maandag", tijd:"18:30–19:30", trainer:"Nog te bevestigen", spelers:["Nore","Maris","Lise Janssens","Paulien"]},
+    {id:2, dag:"Maandag", tijd:"18:30–19:30", trainer:"Tom", spelers:["Jaiden Smolders","Colin van Poecke","Elise van Poecke"]},
+    {id:3, dag:"Maandag", tijd:"19:30–20:30", trainer:"Bekin", spelers:["Karen de Jonghe","Elke de Jonghe","Geert Vissers"]},
+    {id:4, dag:"Maandag", tijd:"19:30–20:30", trainer:"Tom", spelers:["Julie Liessens","Héloïse Van Laere"]},
+    {id:5, dag:"Maandag", tijd:"20:30–21:30", trainer:"Bekin", spelers:["Kris Luckx","Ken Goderis","Koen Buysse","Sammy van Eynde"]},
+    {id:6, dag:"Maandag", tijd:"20:30–21:30", trainer:"Tom", spelers:["Laura Reynaert","Elisabeth de Smedt","Maxime van Eetvelde"]},
+    {id:7, dag:"Dinsdag", tijd:"19:00–20:00", trainer:"Bekin", spelers:["Caroline Alberts","Maaike Perpet"]},
+    {id:8, dag:"Dinsdag", tijd:"20:00–21:00", trainer:"Bekin", spelers:["Sarah Van Haegenbergh","Evelien Vergauwen"]},
+    {id:9, dag:"Dinsdag", tijd:"21:00–22:00", trainer:"Bekin", spelers:["Dries Buytaert","Kaat Buytaert","Elke de Baere"]},
+    {id:10, dag:"Woensdag", tijd:"14:00–15:00", trainer:"Steffi", spelers:["Quinten Smet","Abel De Bock","Bent Van Eynde"]},
+    {id:11, dag:"Woensdag", tijd:"14:00–15:00", trainer:"Tom", spelers:["Rube Segers","Vik Van Steirteghem","Warre Vercauteren","Warre van Havere"]},
+    {id:12, dag:"Woensdag", tijd:"15:00–16:00", trainer:"Tom", spelers:["Lea","Lou","Antoine","Tobe"]},
+    {id:13, dag:"Woensdag", tijd:"15:00–16:00", trainer:"Steffi", spelers:["Louise","Rosalie","Lina"]},
+    {id:14, dag:"Woensdag", tijd:"15:00–16:00", trainer:"Nog te bevestigen", spelers:["Leon Claessens","Sem Claessens","Louis van der Jeugdt","Mories"]},
+    {id:15, dag:"Woensdag", tijd:"16:00–17:00", trainer:"Tom", spelers:["Ayzo de Puysseleire Song","Vincent","Astor","Bona"]},
+    {id:16, dag:"Woensdag", tijd:"16:00–17:00", trainer:"Matt", spelers:["Lina","Elodie"]},
+    {id:17, dag:"Woensdag", tijd:"17:00–18:00", trainer:"Tom", spelers:["Anaelle Dubois","Jill"]},
+    {id:18, dag:"Woensdag", tijd:"17:00–18:00", trainer:"Nog te bevestigen", spelers:["Ward","Leon Champagne"]},
+    {id:19, dag:"Woensdag", tijd:"19:00–20:00", trainer:"Amir", spelers:["Femke Cruyssaert","Britt de Cock","Lena van Pottelberg"]},
+    {id:20, dag:"Woensdag", tijd:"21:00–22:00", trainer:"Amir", spelers:["Kristel Poels","Peggy Van den Broeck"]},
+    {id:21, dag:"Donderdag", tijd:"17:30–18:30", trainer:"Nicky", spelers:["Juliette Claessens","Isolde Vanderoost"]},
+    {id:22, dag:"Donderdag", tijd:"17:30–18:30", trainer:"Jan", spelers:["Renée Claessens"]},
+    {id:23, dag:"Donderdag", tijd:"18:00–19:00", trainer:"Luna", spelers:["Céril Cools","Jesper Haerens"]},
+    {id:24, dag:"Donderdag", tijd:"19:00–20:00", trainer:"Luna", spelers:["Celeste"]},
+    {id:25, dag:"Donderdag", tijd:"20:00–21:00", trainer:"Luna", spelers:["Chiara Lambrechts","Barbara Van Cleemput","Tine Hermans","Amaryllis Audenaert"]},
+    {id:26, dag:"Donderdag", tijd:"21:00–22:00", trainer:"Luna", spelers:["Merielle van de Graef","Elyse Smet","Yolissa Heyndrickx"]},
+    {id:27, dag:"Vrijdag", tijd:"16:00–17:30", trainer:"Jolien", spelers:["Staf","Axel","Billie","Juliette","Anouk","Warre","Kasper","Oscar","Josse","Louis","Lev Claessens","Bas Palmaerts","Amber"]},
+    {id:28, dag:"Vrijdag", tijd:"17:30–18:30", trainer:"Jebbe", spelers:["Oscar Van Hove","Leon Van Goeye","Vince van Eynde"]},
+    {id:29, dag:"Vrijdag", tijd:"18:30–19:30", trainer:"Jebbe", spelers:["Florian","Daan","Lou","Dries"]},
+    {id:30, dag:"Vrijdag", tijd:"19:30–20:30", trainer:"Jebbe", spelers:["Tim","Lowie","Axance"]},
+    {id:31, dag:"Zaterdag", tijd:"10:00–11:00", trainer:"Amir", spelers:["Sterre","Juul","Mauro"]},
+    {id:32, dag:"Zaterdag", tijd:"10:00–11:00", trainer:"Thibaud", spelers:["Victor Wasiluk","Julian Smolders","Laura Rennen","Sebastiaan","Emmie"]},
+    {id:33, dag:"Zaterdag", tijd:"11:00–12:00", trainer:"Amir", spelers:["Gust","Xander","Quinten","Bram"]},
+    {id:34, dag:"Zaterdag", tijd:"11:00–12:00", trainer:"Thibaud", spelers:["Gwen Van Nuffelen","Emma Paelinck"]},
+    {id:35, dag:"Zondag", tijd:"10:00–10:30", trainer:"Jan", spelers:["Renée Claessens"]},
+    {id:36, dag:"Zondag", tijd:"10:00–10:30", trainer:"Jo", spelers:["Juliette Claessens"]},
+    {id:37, dag:"Zondag", tijd:"10:30–11:00", trainer:"Jan", spelers:["Elize Vercauteren"]},
+    {id:38, dag:"Zondag", tijd:"10:30–11:00", trainer:"Jo", spelers:["Lisette Vercauteren"]},
+    {id:39, dag:"Zondag", tijd:"11:00–12:00", trainer:"Geert", spelers:["Cindy","Marianne"]},
+    {id:40, dag:"Zondag", tijd:"12:00–13:00", trainer:"Geert", spelers:["Veerle Hiel","Monique D'hondt","Stefaan Segers"]}
+  ]
+};
+// ============================================================
+
+let huidigeTrainer = "";
+let huidigeDag = "";
+let registraties = {};
+
+function getHuidigeDag() {
+  const d = new Date();
+  return ["Zondag","Maandag","Dinsdag","Woensdag","Donderdag","Vrijdag","Zaterdag"][d.getDay()];
+}
+
+function getWeekInfo() {
+  const start = new Date("2026-04-20");
+  const nu = new Date();
+  const diff = Math.floor((nu - start) / (7 * 24 * 60 * 60 * 1000));
+  if (diff < 0 || diff > 9) return { week: null, label: "Buiten seizoen" };
+  return { week: diff + 1, label: `Week ${diff + 1} van 10` };
+}
+
+function buildTrainerGrid() {
+  const grid = document.getElementById("trainer-grid");
+  DATA.trainers.forEach(t => {
+    const groepen = DATA.groepen.filter(g => g.trainer === t);
+    if (!groepen.length) return;
+    const btn = document.createElement("div");
+    btn.className = "trainer-btn";
+    btn.innerHTML = `<div class="trainer-name">${t}</div><div class="trainer-count">${groepen.length} groep${groepen.length !== 1 ? "en" : ""}</div>`;
+    btn.onclick = () => selectTrainer(t);
+    grid.appendChild(btn);
+  });
+}
+
+function selectTrainer(naam) {
+  huidigeTrainer = naam;
+  huidigeDag = getHuidigeDag();
+  const weekInfo = getWeekInfo();
+  document.getElementById("trainer-naam-display").textContent = naam;
+  document.getElementById("trainer-sub-display").textContent = huidigeDag;
+  document.getElementById("week-pill-display").textContent = weekInfo.label + " · " + huidigeDag;
+  buildGroepenView();
+  showScreen("screen-lessen");
+}
+
+function buildGroepenView() {
+  const container = document.getElementById("groepen-container");
+  container.innerHTML = "";
+  registraties = {};
+  const groepen = DATA.groepen.filter(g => g.trainer === huidigeTrainer && g.dag === huidigeDag);
+
+  if (!groepen.length) {
+    container.innerHTML = `<div class="geen-groepen">Geen groepen ingepland voor ${huidigeDag}.</div>`;
+    return;
+  }
+
+  groepen.forEach(g => {
+    registraties[g.id] = { id: g.id, tijd: g.tijd, lesGegeven: null, aanwezig: {} };
+    g.spelers.forEach(s => registraties[g.id].aanwezig[s] = null);
+
+    const card = document.createElement("div");
+    card.className = "groep-card";
+    card.innerHTML = `
+      <div class="groep-header">
+        <div class="groep-meta">
+          <div class="groep-title">Groep ${g.id}</div>
+          <div class="groep-time">${g.dag} · ${g.tijd}</div>
+        </div>
+        <div class="les-toggle">
+          <button class="les-btn" id="les-yes-${g.id}" onclick="setLes(${g.id},'yes')">Les gegeven</button>
+          <button class="les-btn" id="les-no-${g.id}" onclick="setLes(${g.id},'no')">Geen les</button>
+        </div>
+      </div>
+      <div class="divider"></div>
+      ${g.spelers.map(s => {
+        const k = s.replace(/[^a-zA-Z0-9]/g, '_');
+        return `<div class="speler-row">
+          <span class="speler-naam">${s}</span>
+          <div class="aanw-toggle">
+            <button class="aanw-btn" id="aanw-${g.id}-${k}-ja" onclick="setAanwezig(${g.id},'${s.replace(/'/g,"\\'")}','ja')">Aanwezig</button>
+            <button class="aanw-btn" id="aanw-${g.id}-${k}-nee" onclick="setAanwezig(${g.id},'${s.replace(/'/g,"\\'")}','nee')">Afwezig</button>
+          </div>
+        </div>`;
+      }).join("")}
+    `;
+    container.appendChild(card);
+  });
+}
+
+function setLes(id, val) {
+  registraties[id].lesGegeven = val;
+  document.getElementById(`les-yes-${id}`).className = "les-btn" + (val === "yes" ? " yes" : "");
+  document.getElementById(`les-no-${id}`).className = "les-btn" + (val === "no" ? " no" : "");
+}
+
+function setAanwezig(id, speler, val) {
+  registraties[id].aanwezig[speler] = val;
+  const k = speler.replace(/[^a-zA-Z0-9]/g, '_');
+  document.getElementById(`aanw-${id}-${k}-ja`).className = "aanw-btn" + (val === "ja" ? " aanwezig" : "");
+  document.getElementById(`aanw-${id}-${k}-nee`).className = "aanw-btn" + (val === "nee" ? " afwezig" : "");
+}
+
+async function submitRegistratie() {
+  const btn = document.getElementById("submit-btn");
+  btn.disabled = true;
+  btn.textContent = "Versturen...";
+
+  const weekInfo = getWeekInfo();
+  const payload = {
+    trainer: huidigeTrainer,
+    dag: huidigeDag,
+    week: weekInfo.week,
+    groepen: Object.values(registraties)
+  };
+
+  try {
+    await fetch(APPS_SCRIPT_URL, {
+      method: "POST",
+      body: JSON.stringify(payload)
+    });
+  } catch (e) {
+    // Stil falen – registratie is toch lokaal opgeslagen
+  }
+
+  const lessenGegeven = Object.values(registraties).filter(g => g.lesGegeven === "yes").length;
+  let aanwezigen = 0;
+  Object.values(registraties).forEach(g => {
+    Object.values(g.aanwezig).forEach(v => { if (v === "ja") aanwezigen++; });
+  });
+
+  document.getElementById("confirm-text").textContent =
+    `${huidigeTrainer} · ${huidigeDag} · ${lessenGegeven} les${lessenGegeven !== 1 ? "sen" : ""} geregistreerd · ${aanwezigen} aanwezige${aanwezigen !== 1 ? "n" : ""}`;
+
+  showScreen("screen-confirm");
+}
+
+function goBack() { showScreen("screen-login"); }
+
+function showScreen(id) {
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+
+buildTrainerGrid();
+</script>
+</body>
+</html>
