@@ -3,68 +3,102 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Bounce – Trainer Registratie</title>
+<title>Bounce · Trainer</title>
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f7f7f5; color: #1a1a1a; min-height: 100vh; }
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #fafaf7; color: #1a1a1a; min-height: 100vh; -webkit-font-smoothing: antialiased; }
 .app { max-width: 480px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
-.screen { display: none; }
+.screen { display: none; animation: fadeIn 0.25s ease; }
 .screen.active { display: block; }
-h1 { font-size: 22px; font-weight: 600; margin-bottom: 4px; }
-.sub { font-size: 14px; color: #666; margin-bottom: 1.5rem; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+.header { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+.logo-dot { width: 10px; height: 10px; background: #d4ff00; border-radius: 50%; border: 2px solid #1a1a1a; }
+h1 { font-size: 24px; font-weight: 700; letter-spacing: -0.5px; }
+.sub { font-size: 14px; color: #888; margin-bottom: 1.75rem; }
+
 .trainer-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 1rem; }
-.trainer-btn { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 14px; text-align: left; cursor: pointer; transition: border-color 0.15s; }
-.trainer-btn:hover { border-color: #aaa; }
+.trainer-btn { background: #fff; border: 1px solid #ececec; border-radius: 14px; padding: 14px; text-align: left; cursor: pointer; transition: all 0.2s; }
+.trainer-btn:hover { border-color: #1a1a1a; transform: translateY(-1px); }
+.trainer-btn:active { transform: translateY(0); }
 .trainer-name { font-size: 15px; font-weight: 600; }
-.trainer-count { font-size: 12px; color: #888; margin-top: 2px; }
-.back-btn { background: none; border: none; color: #666; font-size: 14px; cursor: pointer; padding: 0; margin-bottom: 1rem; display: flex; align-items: center; gap: 4px; }
-.week-pill { background: #eef2ff; border-radius: 8px; padding: 8px 14px; margin-bottom: 1rem; font-size: 13px; color: #3730a3; }
-.groep-card { background: #fff; border: 1px solid #e8e8e8; border-radius: 14px; padding: 14px; margin-bottom: 12px; }
-.groep-header { margin-bottom: 10px; }
-.groep-title { font-size: 14px; font-weight: 600; }
-.groep-time { font-size: 12px; color: #888; margin-top: 2px; }
-.les-toggle { display: flex; gap: 6px; margin-top: 10px; }
-.les-btn { font-size: 12px; padding: 7px 12px; border-radius: 8px; border: 1px solid #ddd; background: #f5f5f5; color: #555; cursor: pointer; flex: 1; text-align: center; transition: all 0.15s; }
-.les-btn.yes { background: #dcfce7; border-color: #16a34a; color: #15803d; font-weight: 600; }
-.les-btn.no { background: #fee2e2; border-color: #dc2626; color: #b91c1c; font-weight: 600; }
-.vervanger-wrap { margin-top: 10px; }
-.vervanger-label { font-size: 12px; color: #888; margin-bottom: 4px; }
-.vervanger-select { width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid #ddd; background: #fff; font-size: 13px; color: #1a1a1a; }
-.divider { height: 1px; background: #f0f0f0; margin: 10px 0; }
-.speler-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; }
-.speler-naam { font-size: 13px; }
+.trainer-count { font-size: 12px; color: #999; margin-top: 3px; }
+
+.back-btn { background: none; border: none; color: #666; font-size: 14px; cursor: pointer; padding: 6px 0; margin-bottom: 0.75rem; display: inline-flex; align-items: center; gap: 6px; font-weight: 500; }
+.back-btn:hover { color: #1a1a1a; }
+
+.dag-select-wrap { margin-bottom: 1rem; }
+.dag-select-label { font-size: 12px; color: #888; margin-bottom: 6px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+.dag-select { width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid #ddd; background: #fff; font-size: 15px; color: #1a1a1a; font-weight: 500; cursor: pointer; }
+.dag-select:focus { outline: 2px solid #1a1a1a; outline-offset: -1px; }
+
+.week-pill { background: #1a1a1a; color: #fff; border-radius: 8px; padding: 10px 14px; margin-bottom: 1.25rem; font-size: 13px; font-weight: 500; display: flex; justify-content: space-between; align-items: center; }
+.week-pill .week-label { color: #d4ff00; font-weight: 600; }
+
+.groep-card { background: #fff; border: 1px solid #ececec; border-radius: 16px; padding: 16px; margin-bottom: 12px; }
+.groep-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
+.groep-title { font-size: 15px; font-weight: 700; color: #1a1a1a; }
+.groep-time { font-size: 12px; color: #999; margin-top: 2px; font-weight: 500; }
+.groep-tag { font-size: 11px; background: #f4f4f1; color: #666; padding: 3px 8px; border-radius: 6px; font-weight: 500; }
+
+.les-toggle { display: flex; gap: 8px; margin-bottom: 12px; }
+.les-btn { font-size: 13px; padding: 10px; border-radius: 10px; border: 1px solid #e5e5e5; background: #fafafa; color: #666; cursor: pointer; flex: 1; text-align: center; font-weight: 500; transition: all 0.15s; }
+.les-btn.yes { background: #ecfccb; border-color: #65a30d; color: #3f6212; font-weight: 600; }
+.les-btn.no { background: #fef2f2; border-color: #dc2626; color: #991b1b; font-weight: 600; }
+
+.field-row { margin-bottom: 12px; }
+.field-label { font-size: 11px; color: #999; margin-bottom: 5px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.3px; }
+.field-select, .field-textarea { width: 100%; padding: 9px 12px; border-radius: 9px; border: 1px solid #e5e5e5; background: #fafafa; font-size: 13px; color: #1a1a1a; font-family: inherit; resize: vertical; }
+.field-textarea { min-height: 42px; max-height: 100px; }
+.field-select:focus, .field-textarea:focus { outline: 2px solid #1a1a1a; outline-offset: -1px; background: #fff; }
+
+.divider { height: 1px; background: #f0f0f0; margin: 12px -16px; }
+.spelers-wrap { margin-top: 4px; }
+.spelers-title { font-size: 11px; color: #999; margin-bottom: 8px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.3px; }
+.speler-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid #f8f8f8; }
+.speler-row:last-child { border-bottom: none; }
+.speler-naam { font-size: 13px; color: #1a1a1a; }
 .aanw-toggle { display: flex; gap: 5px; }
-.aanw-btn { font-size: 11px; padding: 4px 9px; border-radius: 6px; border: 1px solid #e0e0e0; background: #fafafa; color: #666; cursor: pointer; transition: all 0.15s; }
-.aanw-btn.aanwezig { background: #dcfce7; border-color: #16a34a; color: #15803d; font-weight: 600; }
-.aanw-btn.afwezig { background: #fee2e2; border-color: #dc2626; color: #b91c1c; font-weight: 600; }
-.geen-groepen { padding: 2rem 0; text-align: center; color: #888; font-size: 14px; line-height: 1.6; }
-.dag-select-wrap { margin-bottom: 1.5rem; }
-.dag-select-label { font-size: 13px; color: #666; margin-bottom: 6px; }
-.dag-select { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid #ddd; background: #fff; font-size: 14px; color: #1a1a1a; }
-.submit-wrap { padding: 1rem 0 0.5rem; margin-top: 0.5rem; }
-.submit-btn { width: 100%; padding: 14px; border-radius: 12px; border: none; background: #1a1a1a; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; }
-.submit-btn:disabled { background: #ccc; cursor: default; }
+.aanw-btn { font-size: 11px; padding: 5px 10px; border-radius: 7px; border: 1px solid #e5e5e5; background: #fafafa; color: #999; cursor: pointer; font-weight: 500; transition: all 0.15s; }
+.aanw-btn.aanwezig { background: #ecfccb; border-color: #65a30d; color: #3f6212; font-weight: 600; }
+.aanw-btn.afwezig { background: #fef2f2; border-color: #dc2626; color: #991b1b; font-weight: 600; }
+
+.geen-groepen { padding: 2.5rem 1rem; text-align: center; color: #999; font-size: 14px; line-height: 1.6; background: #fff; border: 1px dashed #e5e5e5; border-radius: 14px; }
+
+.submit-wrap { padding: 1rem 0 0.5rem; margin-top: 0.5rem; position: sticky; bottom: 0; background: linear-gradient(to top, #fafaf7 60%, transparent); }
+.submit-btn { width: 100%; padding: 15px; border-radius: 12px; border: none; background: #1a1a1a; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+.submit-btn:hover { background: #000; transform: translateY(-1px); }
+.submit-btn:disabled { background: #ccc; cursor: default; transform: none; }
+
 .confirm-wrap { margin-top: 3rem; text-align: center; }
-.confirm-icon { font-size: 48px; margin-bottom: 1rem; }
-.confirm-title { font-size: 20px; font-weight: 600; margin-bottom: 8px; }
-.confirm-sub { font-size: 14px; color: #666; line-height: 1.6; }
-.confirm-new { margin-top: 2rem; background: none; border: 1px solid #ddd; border-radius: 10px; padding: 10px 20px; font-size: 14px; cursor: pointer; color: #333; }
+.confirm-icon { width: 64px; height: 64px; background: #d4ff00; border: 3px solid #1a1a1a; border-radius: 50%; margin: 0 auto 1.25rem; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 700; color: #1a1a1a; }
+.confirm-title { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+.confirm-sub { font-size: 14px; color: #666; line-height: 1.6; max-width: 320px; margin: 0 auto; }
+.confirm-new { margin-top: 2rem; background: none; border: 1px solid #1a1a1a; border-radius: 10px; padding: 12px 24px; font-size: 14px; font-weight: 500; cursor: pointer; color: #1a1a1a; transition: all 0.15s; }
+.confirm-new:hover { background: #1a1a1a; color: #fff; }
 </style>
 </head>
 <body>
 <div class="app">
 
   <div id="screen-login" class="screen active">
-    <h1>Bounce</h1>
+    <div class="header">
+      <div class="logo-dot"></div>
+      <h1>Bounce</h1>
+    </div>
     <p class="sub">Wie ben je?</p>
     <div class="trainer-grid" id="trainer-grid"></div>
   </div>
 
   <div id="screen-lessen" class="screen">
     <button class="back-btn" onclick="goBack()">← Terug</button>
-    <h1 id="trainer-naam-display"></h1>
+    <div class="header">
+      <div class="logo-dot"></div>
+      <h1 id="trainer-naam-display"></h1>
+    </div>
+    <p class="sub">Registreer je trainingen</p>
     <div class="dag-select-wrap">
-      <div class="dag-select-label">Selecteer trainingsdag</div>
+      <div class="dag-select-label">Trainingsdag</div>
       <select class="dag-select" id="dag-select" onchange="onDagChange()"></select>
     </div>
     <div class="week-pill" id="week-pill-display"></div>
@@ -88,7 +122,7 @@ h1 { font-size: 22px; font-weight: 600; margin-bottom: 4px; }
 // ============================================================
 // CONFIGURATIE
 // ============================================================
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyvjYqUT3b5IRYtH4YbpH2-y3w2RcfEWtPuZERnHCTtsEm9tzMByLf87hUp9HdKR7mN/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyc7lHy8BbJuR6CqO_VFs7JRvrPCKvuJRvCM3V9KkYmB7hnRY2EdZoN4i7-XsO4Svnw/exec';
 
 const SEIZOEN_START = new Date("2026-04-20");
 const FEESTDAGEN = {
@@ -100,71 +134,67 @@ const FEESTDAGEN = {
 const DATA = {
   trainers: ["Tom","Bekin","Steffi","Amir","Luna","Nicky","Jan","Matt","Jebbe","Jolien","Laura","Jo","Geert","Thibaud"],
   groepen: [
-    {id:1, dag:"Maandag", tijd:"18:30–19:30", trainer:"Nog te bevestigen", spelers:["Nore","Maris","Lise Janssens","Paulien"]},
+    {id:1, dag:"Maandag", tijd:"18:30–19:30", trainer:"Bekin", spelers:["Nore","Maris","Lise Janssens","Paulien"]},
     {id:2, dag:"Maandag", tijd:"18:30–19:30", trainer:"Tom", spelers:["Jaiden Smolders","Colin van Poecke","Elise van Poecke"]},
     {id:3, dag:"Maandag", tijd:"19:30–20:30", trainer:"Bekin", spelers:["Karen de Jonghe","Elke de Jonghe","Geert Vissers"]},
-    {id:4, dag:"Maandag", tijd:"19:30–20:30", trainer:"Tom", spelers:["Julie Liessens","Héloïse Van Laere"]},
-    {id:5, dag:"Maandag", tijd:"20:30–21:30", trainer:"Bekin", spelers:["Kris Luckx","Ken Goderis","Koen Buysse","Sammy van Eynde"]},
-    {id:6, dag:"Maandag", tijd:"20:30–21:30", trainer:"Tom", spelers:["Laura Reynaert","Elisabeth de Smedt","Maxime van Eetvelde"]},
-    {id:7, dag:"Dinsdag", tijd:"19:00–20:00", trainer:"Bekin", spelers:["Caroline Alberts","Maaike Perpet"]},
-    {id:8, dag:"Dinsdag", tijd:"20:00–21:00", trainer:"Bekin", spelers:["Sarah Van Haegenbergh","Evelien Vergauwen"]},
-    {id:9, dag:"Dinsdag", tijd:"21:00–22:00", trainer:"Bekin", spelers:["Dries Buytaert","Kaat Buytaert","Elke de Baere"]},
-    {id:10, dag:"Woensdag", tijd:"14:00–15:00", trainer:"Steffi", spelers:["Quinten Smet","Abel De Bock","Bent Van Eynde"]},
-    {id:11, dag:"Woensdag", tijd:"14:00–15:00", trainer:"Tom", spelers:["Rube Segers","Vik Van Steirteghem","Warre Vercauteren","Warre van Havere"]},
+    {id:4, dag:"Maandag", tijd:"19:30–20:30", trainer:"Tom", spelers:["Julie Liessens","Van Laere Héloïse"]},
+    {id:5, dag:"Maandag", tijd:"20:30–21:30", trainer:"Bekin", spelers:["Kris Luckx","Ken Goderis","Koen Buysse"]},
+    {id:6, dag:"Maandag", tijd:"20:30–21:30", trainer:"Tom", spelers:["Laura Reynaert","Elisabeth de Smedt","Maxime Van Eetvelde"]},
+    {id:7, dag:"Dinsdag", tijd:"19:00–20:00", trainer:"Nicky", spelers:["Caroline Alberts","Maaike Perpet"]},
+    {id:8, dag:"Dinsdag", tijd:"20:00–21:00", trainer:"Bekin", spelers:["Van Haegenbergh Sarah","Vergauwen Evelien"]},
+    {id:9, dag:"Dinsdag", tijd:"21:00–22:00", trainer:"Bekin", spelers:["Dries Buytaert","Kaat Buytaert","Elke de Baere","Karel"]},
+    {id:21, dag:"Dinsdag", tijd:"18:00–19:00", trainer:"Jan", spelers:["Juliette","Isolde"]},
+    {id:22, dag:"Dinsdag", tijd:"18:00–19:00", trainer:"Nicky", spelers:["Renee"]},
+    {id:10, dag:"Woensdag", tijd:"14:00–15:00", trainer:"Steffi", spelers:["Smet Quinten","De Bock Abel","Bent Van Eynde"]},
+    {id:11, dag:"Woensdag", tijd:"14:00–15:00", trainer:"Tom", spelers:["Segers Rube","Van Steirteghem Vik","Warre Vercauteren","Van Havere Warre"]},
     {id:12, dag:"Woensdag", tijd:"15:00–16:00", trainer:"Tom", spelers:["Lea","Lou","Antoine","Tobe"]},
-    {id:13, dag:"Woensdag", tijd:"15:00–16:00", trainer:"Steffi", spelers:["Louise","Rosalie","Lina"]},
-    {id:14, dag:"Woensdag", tijd:"15:00–16:00", trainer:"Nog te bevestigen", spelers:["Leon Claessens","Sem Claessens","Louis van der Jeugdt","Mories"]},
+    {id:13, dag:"Woensdag", tijd:"15:00–16:00", trainer:"Steffi", spelers:["Louise","Rosalie","Lina","Mories"]},
+    {id:14, dag:"Woensdag", tijd:"15:00–16:00", trainer:"Jolien", spelers:["Claessens Leon","Claessens Sem","Van der Jeugdt Louis"]},
     {id:15, dag:"Woensdag", tijd:"16:00–17:00", trainer:"Tom", spelers:["Ayzo de Puysseleire Song","Vincent","Astor","Bona"]},
     {id:16, dag:"Woensdag", tijd:"16:00–17:00", trainer:"Matt", spelers:["Lina","Elodie"]},
     {id:17, dag:"Woensdag", tijd:"17:00–18:00", trainer:"Tom", spelers:["Anaelle Dubois","Jill"]},
-    {id:18, dag:"Woensdag", tijd:"17:00–18:00", trainer:"Nog te bevestigen", spelers:["Ward","Leon Champagne"]},
+    {id:18, dag:"Woensdag", tijd:"17:00–18:00", trainer:"Tom", spelers:["Ward","Leon Champagne"]},
     {id:19, dag:"Woensdag", tijd:"19:00–20:00", trainer:"Amir", spelers:["Femke Cruyssaert","Britt de Cock","Lena van Pottelberg"]},
     {id:20, dag:"Woensdag", tijd:"21:00–22:00", trainer:"Amir", spelers:["Kristel Poels","Peggy Van den Broeck"]},
-    {id:21, dag:"Donderdag", tijd:"17:30–18:30", trainer:"Nicky", spelers:["Juliette Claessens","Isolde Vanderoost"]},
-    {id:22, dag:"Donderdag", tijd:"17:30–18:30", trainer:"Jan", spelers:["Renée Claessens"]},
+    {id:31, dag:"Woensdag", tijd:"15:00–16:00", trainer:"Matt", spelers:["Sterre","Juul","Mauro"]},
     {id:23, dag:"Donderdag", tijd:"18:00–19:00", trainer:"Luna", spelers:["Céril Cools","Jesper Haerens"]},
     {id:24, dag:"Donderdag", tijd:"19:00–20:00", trainer:"Luna", spelers:["Celeste"]},
-    {id:25, dag:"Donderdag", tijd:"20:00–21:00", trainer:"Luna", spelers:["Chiara Lambrechts","Barbara Van Cleemput","Tine Hermans","Amaryllis Audenaert"]},
+    {id:25, dag:"Donderdag", tijd:"20:00–21:00", trainer:"Luna", spelers:["Lambrechts Chiara","Van Cleemput Barbara","Hermans Tine","Amaryllis Audenaert"]},
     {id:26, dag:"Donderdag", tijd:"21:00–22:00", trainer:"Luna", spelers:["Merielle van de Graef","Elyse Smet","Yolissa Heyndrickx"]},
-    {id:27, dag:"Vrijdag", tijd:"16:00–17:30", trainer:"Jolien", spelers:["Staf","Axel","Billie","Juliette","Anouk","Warre","Kasper","Oscar","Josse","Louis","Lev Claessens","Bas Palmaerts","Amber"]},
-    {id:28, dag:"Vrijdag", tijd:"17:30–18:30", trainer:"Jebbe", spelers:["Oscar Van Hove","Leon Van Goeye","Vince van Eynde"]},
+    {id:27, dag:"Vrijdag", tijd:"16:00–17:30", trainer:"Jolien/Laura/Matt", spelers:["Staf","Axel","Billie","Juliette","Anouk","Warre","Kasper","Oscar","Josse","Louis","Lev Claessens","Bas Palmaerts","Amber"]},
+    {id:28, dag:"Vrijdag", tijd:"17:30–18:30", trainer:"Jebbe", spelers:["Van Hove Oscar","Van Goeye Leon","Vince van Eynde","Tijl Segers"]},
     {id:29, dag:"Vrijdag", tijd:"18:30–19:30", trainer:"Jebbe", spelers:["Florian","Daan","Lou","Dries"]},
     {id:30, dag:"Vrijdag", tijd:"19:30–20:30", trainer:"Jebbe", spelers:["Tim","Lowie","Axance"]},
-    {id:31, dag:"Zaterdag", tijd:"10:00–11:00", trainer:"Amir", spelers:["Sterre","Juul","Mauro"]},
-    {id:32, dag:"Zaterdag", tijd:"10:00–11:00", trainer:"Thibaud", spelers:["Victor Wasiluk","Julian Smolders","Laura Rennen","Sebastiaan","Emmie"]},
+    {id:32, dag:"Zaterdag", tijd:"10:00–11:00", trainer:"Amir/Thibaud", spelers:["Victor Wasiluk","Julian Smolders","Laura Rennen","Sebastiaan","Emmie"]},
     {id:33, dag:"Zaterdag", tijd:"11:00–12:00", trainer:"Amir", spelers:["Gust","Xander","Quinten","Bram"]},
-    {id:34, dag:"Zaterdag", tijd:"11:00–12:00", trainer:"Thibaud", spelers:["Gwen Van Nuffelen","Emma Paelinck"]},
-    {id:35, dag:"Zondag", tijd:"10:00–10:30", trainer:"Jan", spelers:["Renée Claessens"]},
-    {id:36, dag:"Zondag", tijd:"10:00–10:30", trainer:"Jo", spelers:["Juliette Claessens"]},
-    {id:37, dag:"Zondag", tijd:"10:30–11:00", trainer:"Jan", spelers:["Elize Vercauteren"]},
-    {id:38, dag:"Zondag", tijd:"10:30–11:00", trainer:"Jo", spelers:["Lisette Vercauteren"]},
-    {id:39, dag:"Zondag", tijd:"11:00–12:00", trainer:"Geert", spelers:["Cindy","Marianne"]},
-    {id:40, dag:"Zondag", tijd:"12:00–13:00", trainer:"Geert", spelers:["Veerle Hiel","Monique D'hondt","Stefaan Segers"]}
+    {id:34, dag:"Zaterdag", tijd:"11:00–12:00", trainer:"Thibaud", spelers:["Van Nuffelen Gwen","Emma Paelinck"]},
+    {id:35, dag:"Zondag", tijd:"10:30–11:00", trainer:"Jo", spelers:["Lisette Vercauteren"]},
+    {id:36, dag:"Zondag", tijd:"11:00–12:00", trainer:"Geert", spelers:["Cindy","Marianne","Ann Blommaert"]},
+    {id:37, dag:"Zondag", tijd:"12:00–13:00", trainer:"Geert", spelers:["Hiel Veerle","Monique D'hondt","Stefaan Segers"]},
+    {id:38, dag:"Zondag", tijd:"10:00–11:00", trainer:"Jan/Jo", spelers:["Renee Claessens","Juliette Claessens","Elize Vercauteren"]}
   ]
 };
 // ============================================================
 
-const DAG_NAMEN = ["Zondag","Maandag","Dinsdag","Woensdag","Donderdag","Vrijdag","Zaterdag"];
 const DAG_NR = {Maandag:1,Dinsdag:2,Woensdag:3,Donderdag:4,Vrijdag:5,Zaterdag:6,Zondag:0};
 let huidigeTrainer = "";
 let registraties = {};
 
-function datumVoorDag(dagNaam, vanafVandaag) {
+function trainerMatch(trainerVeld, naam) {
+  return trainerVeld.split("/").map(s => s.trim()).includes(naam);
+}
+
+function datumVoorDag(dagNaam) {
   const target = DAG_NR[dagNaam];
-  const nu = vanafVandaag ? new Date() : new Date(SEIZOEN_START);
-  const d = new Date(nu);
-  if (vanafVandaag) {
-    const diff = (target - d.getDay() + 7) % 7;
-    d.setDate(d.getDate() + diff);
-  } else {
-    while (d.getDay() !== target) d.setDate(d.getDate() + 1);
-  }
+  const d = new Date();
+  d.setHours(0,0,0,0);
+  const diff = (target - d.getDay() + 7) % 7;
+  d.setDate(d.getDate() + diff);
   return d;
 }
 
 function isFeestdag(d) {
-  const key = d.toISOString().slice(0,10);
-  return FEESTDAGEN[key] || false;
+  return FEESTDAGEN[d.toISOString().slice(0,10)] || false;
 }
 
 function formatDatum(d) {
@@ -173,16 +203,14 @@ function formatDatum(d) {
 
 function getWeekNummer(d) {
   const diff = Math.floor((d - SEIZOEN_START) / (7 * 24 * 60 * 60 * 1000));
-  if (diff < 0 || diff > 11) return null;
-  return diff + 1;
+  return (diff >= 0 && diff <= 11) ? diff + 1 : null;
 }
 
 function getTrainerDagen(trainer) {
-  const dagen = [...new Set(DATA.groepen.filter(g => g.trainer === trainer).map(g => g.dag))];
+  const dagen = [...new Set(DATA.groepen.filter(g => trainerMatch(g.trainer, trainer)).map(g => g.dag))];
   const result = [];
-  const nu = new Date();
   dagen.forEach(dag => {
-    const d = datumVoorDag(dag, true);
+    const d = datumVoorDag(dag);
     if (!isFeestdag(d)) result.push({ dag, datum: d });
   });
   result.sort((a, b) => a.datum - b.datum);
@@ -192,7 +220,7 @@ function getTrainerDagen(trainer) {
 function buildTrainerGrid() {
   const grid = document.getElementById("trainer-grid");
   DATA.trainers.forEach(t => {
-    const groepen = DATA.groepen.filter(g => g.trainer === t);
+    const groepen = DATA.groepen.filter(g => trainerMatch(g.trainer, t));
     if (!groepen.length) return;
     const btn = document.createElement("div");
     btn.className = "trainer-btn";
@@ -205,7 +233,6 @@ function buildTrainerGrid() {
 function selectTrainer(naam) {
   huidigeTrainer = naam;
   document.getElementById("trainer-naam-display").textContent = naam;
-
   const dagSelect = document.getElementById("dag-select");
   dagSelect.innerHTML = "";
   const dagen = getTrainerDagen(naam);
@@ -213,7 +240,7 @@ function selectTrainer(naam) {
   if (!dagen.length) {
     dagSelect.innerHTML = "<option>Geen trainingen gevonden</option>";
   } else {
-    dagen.forEach((item, i) => {
+    dagen.forEach((item) => {
       const opt = document.createElement("option");
       opt.value = item.dag + "|" + item.datum.toISOString();
       opt.textContent = formatDatum(item.datum);
@@ -231,8 +258,12 @@ function onDagChange() {
   const [dag, datumStr] = val.split("|");
   const datum = new Date(datumStr);
   const week = getWeekNummer(datum);
-  document.getElementById("week-pill-display").textContent =
-    week ? `Week ${week} van 10 · ${formatDatum(datum)}` : formatDatum(datum);
+  const pill = document.getElementById("week-pill-display");
+  if (week) {
+    pill.innerHTML = `<span>${formatDatum(datum)}</span><span class="week-label">WEEK ${week}/10</span>`;
+  } else {
+    pill.innerHTML = `<span>${formatDatum(datum)}</span><span class="week-label">INHAALWEEK</span>`;
+  }
   buildGroepenView(dag);
 }
 
@@ -240,7 +271,7 @@ function buildGroepenView(dag) {
   const container = document.getElementById("groepen-container");
   container.innerHTML = "";
   registraties = {};
-  const groepen = DATA.groepen.filter(g => g.trainer === huidigeTrainer && g.dag === dag);
+  const groepen = DATA.groepen.filter(g => trainerMatch(g.trainer, huidigeTrainer) && g.dag === dag);
 
   if (!groepen.length) {
     container.innerHTML = `<div class="geen-groepen">Geen groepen voor ${dag}.</div>`;
@@ -248,11 +279,23 @@ function buildGroepenView(dag) {
   }
 
   groepen.forEach(g => {
-    registraties[g.id] = { id: g.id, dag: g.dag, tijd: g.tijd, trainer: huidigeTrainer, vervanger: null, lesGegeven: null, aanwezig: {} };
+    registraties[g.id] = {
+      id: g.id,
+      dag: g.dag,
+      tijd: g.tijd,
+      ingepland: g.trainer,
+      gever: huidigeTrainer,
+      lesGegeven: null,
+      opmerking: "",
+      aanwezig: {}
+    };
     g.spelers.forEach(s => registraties[g.id].aanwezig[s] = null);
 
     const card = document.createElement("div");
     card.className = "groep-card";
+
+    const isGedeeld = g.trainer.indexOf("/") !== -1;
+    const tag = isGedeeld ? `<div class="groep-tag">Gedeeld: ${g.trainer}</div>` : "";
 
     const vervOpts = DATA.trainers.map(t =>
       `<option value="${t}" ${t === huidigeTrainer ? "selected" : ""}>${t}</option>`
@@ -260,30 +303,39 @@ function buildGroepenView(dag) {
 
     card.innerHTML = `
       <div class="groep-header">
-        <div class="groep-title">Groep ${g.id}</div>
-        <div class="groep-time">${g.dag} · ${g.tijd}</div>
+        <div>
+          <div class="groep-title">Groep ${g.id}</div>
+          <div class="groep-time">${g.dag} · ${g.tijd}</div>
+        </div>
+        ${tag}
       </div>
       <div class="les-toggle">
         <button class="les-btn" id="les-yes-${g.id}" onclick="setLes(${g.id},'yes')">Les gegeven</button>
         <button class="les-btn" id="les-no-${g.id}" onclick="setLes(${g.id},'no')">Geen les</button>
       </div>
-      <div class="vervanger-wrap">
-        <div class="vervanger-label">Trainer die de les geeft</div>
-        <select class="vervanger-select" id="vervanger-${g.id}" onchange="setVervanger(${g.id}, this.value)">
-          ${vervOpts}
-        </select>
+      <div class="field-row">
+        <div class="field-label">Trainer die lesgaf</div>
+        <select class="field-select" id="gever-${g.id}" onchange="setGever(${g.id}, this.value)">${vervOpts}</select>
+      </div>
+      <div class="field-row">
+        <div class="field-label">Opmerking (optioneel)</div>
+        <textarea class="field-textarea" id="opm-${g.id}" placeholder="Bv. geen les door regen, veld onbespeelbaar..." oninput="setOpmerking(${g.id}, this.value)"></textarea>
       </div>
       <div class="divider"></div>
-      ${g.spelers.map(s => {
-        const k = s.replace(/[^a-zA-Z0-9]/g, '_');
-        return `<div class="speler-row">
-          <span class="speler-naam">${s}</span>
-          <div class="aanw-toggle">
-            <button class="aanw-btn" id="aanw-${g.id}-${k}-ja" onclick="setAanwezig(${g.id},'${s.replace(/'/g,"\\'")}','ja')">Aanwezig</button>
-            <button class="aanw-btn" id="aanw-${g.id}-${k}-nee" onclick="setAanwezig(${g.id},'${s.replace(/'/g,"\\'")}','nee')">Afwezig</button>
-          </div>
-        </div>`;
-      }).join("")}
+      <div class="spelers-wrap">
+        <div class="spelers-title">Aanwezigheid</div>
+        ${g.spelers.map(s => {
+          const k = s.replace(/[^a-zA-Z0-9]/g, '_');
+          const esc = s.replace(/'/g,"\\'");
+          return `<div class="speler-row">
+            <span class="speler-naam">${s}</span>
+            <div class="aanw-toggle">
+              <button class="aanw-btn" id="aanw-${g.id}-${k}-ja" onclick="setAanwezig(${g.id},'${esc}','ja')">Aanw.</button>
+              <button class="aanw-btn" id="aanw-${g.id}-${k}-nee" onclick="setAanwezig(${g.id},'${esc}','nee')">Afw.</button>
+            </div>
+          </div>`;
+        }).join("")}
+      </div>
     `;
     container.appendChild(card);
   });
@@ -295,9 +347,8 @@ function setLes(id, val) {
   document.getElementById(`les-no-${id}`).className = "les-btn" + (val === "no" ? " no" : "");
 }
 
-function setVervanger(id, val) {
-  registraties[id].vervanger = val;
-}
+function setGever(id, val) { registraties[id].gever = val; }
+function setOpmerking(id, val) { registraties[id].opmerking = val; }
 
 function setAanwezig(id, speler, val) {
   registraties[id].aanwezig[speler] = val;
@@ -320,7 +371,8 @@ async function submitRegistratie() {
     trainer: huidigeTrainer,
     dag,
     datum: datum.toLocaleDateString("nl-BE", { day: "numeric", month: "long", year: "numeric" }),
-    week: week || "?",
+    datumISO: datum.toISOString().slice(0,10),
+    week: week || "Inhaal",
     groepen: Object.values(registraties)
   };
 
@@ -332,6 +384,8 @@ async function submitRegistratie() {
   document.getElementById("confirm-text").textContent =
     `${huidigeTrainer} · ${datum.toLocaleDateString("nl-BE", {day:"numeric",month:"long"})} · ${lessenGegeven} les${lessenGegeven !== 1 ? "sen" : ""} geregistreerd`;
 
+  btn.disabled = false;
+  btn.textContent = "Registratie versturen";
   showScreen("screen-confirm");
 }
 
@@ -339,6 +393,7 @@ function goBack() { showScreen("screen-login"); }
 function showScreen(id) {
   document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
   document.getElementById(id).classList.add("active");
+  window.scrollTo(0, 0);
 }
 
 buildTrainerGrid();
