@@ -209,9 +209,22 @@ function getWeekNummer(d) {
 function getTrainerDagen(trainer) {
   const dagen = [...new Set(DATA.groepen.filter(g => trainerMatch(g.trainer, trainer)).map(g => g.dag))];
   const result = [];
-  dagen.forEach(dag => {
-    const d = datumVoorDag(dag);
-    if (!isFeestdag(d)) result.push({ dag, datum: d });
+  const vandaag = new Date();
+  vandaag.setHours(0,0,0,0);
+  const SEIZOEN_EIND = new Date("2026-06-28");
+
+  dagen.forEach(dagNaam => {
+    const target = DAG_NR[dagNaam];
+    const d = new Date(SEIZOEN_START);
+    while (d.getDay() !== target) d.setDate(d.getDate() + 1);
+    while (d <= SEIZOEN_EIND) {
+      if (!isFeestdag(d)) {
+        const isToekomst = d >= vandaag;
+        const isVandaag = d.getTime() === vandaag.getTime();
+        result.push({ dag: dagNaam, datum: new Date(d), isToekomst, isVandaag });
+      }
+      d.setDate(d.getDate() + 7);
+    }
   });
   result.sort((a, b) => a.datum - b.datum);
   return result;
@@ -240,12 +253,22 @@ function selectTrainer(naam) {
   if (!dagen.length) {
     dagSelect.innerHTML = "<option>Geen trainingen gevonden</option>";
   } else {
-    dagen.forEach((item) => {
+    let defaultIndex = 0;
+    dagen.forEach((item, i) => {
       const opt = document.createElement("option");
       opt.value = item.dag + "|" + item.datum.toISOString();
-      opt.textContent = formatDatum(item.datum);
+      let label = formatDatum(item.datum);
+      if (item.isVandaag) { label = "Vandaag · " + label; defaultIndex = i; }
+      else if (!item.isToekomst) { label = "↺ " + label; }
+      opt.textContent = label;
       dagSelect.appendChild(opt);
     });
+    // Als er geen vandaag is, kies eerste toekomstige
+    if (!dagen[defaultIndex].isVandaag) {
+      const firstFuture = dagen.findIndex(d => d.isToekomst);
+      if (firstFuture !== -1) defaultIndex = firstFuture;
+    }
+    dagSelect.selectedIndex = defaultIndex;
   }
 
   onDagChange();
