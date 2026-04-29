@@ -32,6 +32,10 @@ h1 { font-size: 24px; font-weight: 700; letter-spacing: -0.5px; }
 .dag-select { width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid #ddd; background: #fff; font-size: 15px; color: #1a1a1a; font-weight: 500; cursor: pointer; }
 .dag-select:focus { outline: 2px solid #1a1a1a; outline-offset: -1px; }
 
+/* NIEUW: toekomst-waarschuwing */
+.toekomst-banner { background: #fffbeb; border: 1px solid #f59e0b; border-radius: 10px; padding: 10px 14px; margin-bottom: 1rem; font-size: 13px; color: #92400e; font-weight: 500; display: none; }
+.toekomst-banner.zichtbaar { display: block; }
+
 .week-pill { background: #1a1a1a; color: #fff; border-radius: 8px; padding: 10px 14px; margin-bottom: 1.25rem; font-size: 13px; font-weight: 500; display: flex; justify-content: space-between; align-items: center; }
 .week-pill .week-label { color: #d4ff00; font-weight: 600; }
 
@@ -48,20 +52,27 @@ h1 { font-size: 24px; font-weight: 700; letter-spacing: -0.5px; }
 
 .field-row { margin-bottom: 12px; }
 .field-label { font-size: 11px; color: #999; margin-bottom: 5px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.3px; }
+.field-label.verplicht { color: #dc2626; }
 .field-select, .field-textarea { width: 100%; padding: 9px 12px; border-radius: 9px; border: 1px solid #e5e5e5; background: #fafafa; font-size: 13px; color: #1a1a1a; font-family: inherit; resize: vertical; }
 .field-textarea { min-height: 42px; max-height: 100px; }
 .field-select:focus, .field-textarea:focus { outline: 2px solid #1a1a1a; outline-offset: -1px; background: #fff; }
+.field-textarea.verplicht-border { border-color: #dc2626; background: #fff9f9; }
 
 .divider { height: 1px; background: #f0f0f0; margin: 12px -16px; }
 .spelers-wrap { margin-top: 4px; }
 .spelers-title { font-size: 11px; color: #999; margin-bottom: 8px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.3px; }
 .speler-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid #f8f8f8; }
 .speler-row:last-child { border-bottom: none; }
+.speler-row.ontbreekt { background: #fff9f9; border-radius: 8px; padding: 7px 8px; margin: 0 -8px; }
 .speler-naam { font-size: 13px; color: #1a1a1a; }
 .aanw-toggle { display: flex; gap: 5px; }
 .aanw-btn { font-size: 11px; padding: 5px 10px; border-radius: 7px; border: 1px solid #e5e5e5; background: #fafafa; color: #999; cursor: pointer; font-weight: 500; transition: all 0.15s; }
 .aanw-btn.aanwezig { background: #ecfccb; border-color: #65a30d; color: #3f6212; font-weight: 600; }
 .aanw-btn.afwezig { background: #fef2f2; border-color: #dc2626; color: #991b1b; font-weight: 600; }
+
+/* NIEUW: foutmelding in kaart */
+.validatie-fout { font-size: 12px; color: #dc2626; background: #fef2f2; border: 1px solid #fca5a5; border-radius: 8px; padding: 8px 10px; margin-bottom: 10px; display: none; }
+.validatie-fout.zichtbaar { display: block; }
 
 .geen-groepen { padding: 2.5rem 1rem; text-align: center; color: #999; font-size: 14px; line-height: 1.6; background: #fff; border: 1px dashed #e5e5e5; border-radius: 14px; }
 
@@ -76,6 +87,9 @@ h1 { font-size: 24px; font-weight: 700; letter-spacing: -0.5px; }
 .confirm-sub { font-size: 14px; color: #666; line-height: 1.6; max-width: 320px; margin: 0 auto; }
 .confirm-new { margin-top: 2rem; background: none; border: 1px solid #1a1a1a; border-radius: 10px; padding: 12px 24px; font-size: 14px; font-weight: 500; cursor: pointer; color: #1a1a1a; transition: all 0.15s; }
 .confirm-new:hover { background: #1a1a1a; color: #fff; }
+
+.verv-link { display: block; width: 100%; margin-top: 1rem; background: none; border: 1px dashed #ccc; border-radius: 12px; padding: 13px; font-size: 13px; color: #666; cursor: pointer; text-align: center; font-weight: 500; transition: all 0.2s; }
+.verv-link:hover { border-color: #1a1a1a; color: #1a1a1a; }
 </style>
 </head>
 <body>
@@ -88,6 +102,31 @@ h1 { font-size: 24px; font-weight: 700; letter-spacing: -0.5px; }
     </div>
     <p class="sub">Wie ben je?</p>
     <div class="trainer-grid" id="trainer-grid"></div>
+    <button class="verv-link" onclick="openVervangingScherm()">↔ Ik geef les voor iemand anders vandaag</button>
+  </div>
+
+  <div id="screen-vervanging" class="screen">
+    <button class="back-btn" onclick="showScreen('screen-login')">← Terug</button>
+    <div class="header">
+      <div class="logo-dot"></div>
+      <h1>Vervanging</h1>
+    </div>
+    <p class="sub">Jij geeft les in plaats van een andere trainer.</p>
+    <div class="dag-select-wrap">
+      <div class="dag-select-label">Wie ben jij?</div>
+      <select class="dag-select" id="verv-jij-select">
+        <option value="">Kies jouw naam...</option>
+      </select>
+    </div>
+    <div class="dag-select-wrap">
+      <div class="dag-select-label">Wie vervang je?</div>
+      <select class="dag-select" id="verv-wie-select">
+        <option value="">Kies de trainer die je vervangt...</option>
+      </select>
+    </div>
+    <div style="margin-top:1.5rem">
+      <button class="submit-btn" onclick="bevestigVervanging()">Ga verder →</button>
+    </div>
   </div>
 
   <div id="screen-lessen" class="screen">
@@ -100,6 +139,9 @@ h1 { font-size: 24px; font-weight: 700; letter-spacing: -0.5px; }
     <div class="dag-select-wrap">
       <div class="dag-select-label">Trainingsdag</div>
       <select class="dag-select" id="dag-select" onchange="onDagChange()"></select>
+    </div>
+    <div class="toekomst-banner" id="toekomst-banner">
+      ⚠️ Je selecteert een datum in de toekomst. Vul pas in na de les.
     </div>
     <div class="week-pill" id="week-pill-display"></div>
     <div id="groepen-container"></div>
@@ -132,7 +174,7 @@ const FEESTDAGEN = {
 };
 
 const DATA = {
-  trainers: ["Tom","Bekin","Steffi","Amir","Luna","Nicky","Jan","Matt","Jebbe","Jolien","Laura","Jo","Geert","Thibaud"],
+  trainers: ["Tom","Bekin","Steffi","Amir","Luna","Nicky","Jan","Matt","Jebbe","Jolien","Laura","Lucas","Jo","Geert","Thibaud"],
   groepen: [
     {id:1, dag:"Maandag", tijd:"18:30–19:30", trainer:"Bekin", spelers:["Nore","Maris","Lise Janssens","Paulien"]},
     {id:2, dag:"Maandag", tijd:"18:30–19:30", trainer:"Tom", spelers:["Jaiden Smolders","Colin van Poecke","Elise van Poecke"]},
@@ -140,6 +182,7 @@ const DATA = {
     {id:4, dag:"Maandag", tijd:"19:30–20:30", trainer:"Tom", spelers:["Julie Liessens","Van Laere Héloïse"]},
     {id:5, dag:"Maandag", tijd:"20:30–21:30", trainer:"Bekin", spelers:["Kris Luckx","Ken Goderis","Koen Buysse"]},
     {id:6, dag:"Maandag", tijd:"20:30–21:30", trainer:"Tom", spelers:["Laura Reynaert","Elisabeth de Smedt","Maxime Van Eetvelde"]},
+    {id:40, dag:"Maandag", tijd:"16:30–18:00", trainer:"Jan", spelers:["Johan"]},
     {id:7, dag:"Dinsdag", tijd:"19:00–20:00", trainer:"Nicky", spelers:["Caroline Alberts","Maaike Perpet"]},
     {id:8, dag:"Dinsdag", tijd:"20:00–21:00", trainer:"Bekin", spelers:["Van Haegenbergh Sarah","Vergauwen Evelien"]},
     {id:9, dag:"Dinsdag", tijd:"21:00–22:00", trainer:"Bekin", spelers:["Dries Buytaert","Kaat Buytaert","Elke de Baere","Karel"]},
@@ -153,31 +196,34 @@ const DATA = {
     {id:15, dag:"Woensdag", tijd:"16:00–17:00", trainer:"Tom", spelers:["Ayzo de Puysseleire Song","Vincent","Astor","Bona"]},
     {id:16, dag:"Woensdag", tijd:"16:00–17:00", trainer:"Matt", spelers:["Lina","Elodie"]},
     {id:17, dag:"Woensdag", tijd:"17:00–18:00", trainer:"Tom", spelers:["Anaelle Dubois","Jill"]},
+    {id:39, dag:"Woensdag", tijd:"17:00–18:00", trainer:"Matt", spelers:["Staf"]},
     {id:18, dag:"Woensdag", tijd:"17:00–18:00", trainer:"Tom", spelers:["Ward","Leon Champagne"]},
     {id:19, dag:"Woensdag", tijd:"19:00–20:00", trainer:"Amir", spelers:["Femke Cruyssaert","Britt de Cock","Lena van Pottelberg"]},
     {id:20, dag:"Woensdag", tijd:"21:00–22:00", trainer:"Amir", spelers:["Kristel Poels","Peggy Van den Broeck"]},
+    {id:41, dag:"Woensdag", tijd:"18:30–19:45", trainer:"Jan", spelers:["Svenja"]},
+    {id:42, dag:"Woensdag", tijd:"19:45–21:00", trainer:"Jan", spelers:["Elke"]},
     {id:31, dag:"Woensdag", tijd:"15:00–16:00", trainer:"Matt", spelers:["Sterre","Juul","Mauro"]},
     {id:23, dag:"Donderdag", tijd:"18:00–19:00", trainer:"Luna", spelers:["Céril Cools","Jesper Haerens"]},
     {id:24, dag:"Donderdag", tijd:"19:00–20:00", trainer:"Luna", spelers:["Celeste"]},
     {id:25, dag:"Donderdag", tijd:"20:00–21:00", trainer:"Luna", spelers:["Lambrechts Chiara","Van Cleemput Barbara","Hermans Tine","Amaryllis Audenaert"]},
     {id:26, dag:"Donderdag", tijd:"21:00–22:00", trainer:"Luna", spelers:["Merielle van de Graef","Elyse Smet","Yolissa Heyndrickx"]},
-    {id:27, dag:"Vrijdag", tijd:"16:00–17:30", trainer:"Jolien/Laura/Matt", spelers:["Staf","Axel","Billie","Juliette","Anouk","Warre","Kasper","Oscar","Josse","Louis","Lev Claessens","Bas Palmaerts","Amber"]},
+    {id:27, dag:"Vrijdag", tijd:"16:00–17:30", trainer:"Jolien/Laura/Matt/Lucas", spelers:["Staf","Axel","Billie","Juliette","Anouk","Warre","Kasper","Oscar","Josse","Louis","Lev Claessens","Bas Palmaerts","Amber"]},
     {id:28, dag:"Vrijdag", tijd:"17:30–18:30", trainer:"Jebbe", spelers:["Van Hove Oscar","Van Goeye Leon","Vince van Eynde","Tijl Segers"]},
     {id:29, dag:"Vrijdag", tijd:"18:30–19:30", trainer:"Jebbe", spelers:["Florian","Daan","Lou","Dries"]},
     {id:30, dag:"Vrijdag", tijd:"19:30–20:30", trainer:"Jebbe", spelers:["Tim","Lowie","Axance"]},
     {id:32, dag:"Zaterdag", tijd:"10:00–11:00", trainer:"Amir/Thibaud", spelers:["Victor Wasiluk","Julian Smolders","Laura Rennen","Sebastiaan","Emmie"]},
     {id:33, dag:"Zaterdag", tijd:"11:00–12:00", trainer:"Amir", spelers:["Gust","Xander","Quinten","Bram"]},
     {id:34, dag:"Zaterdag", tijd:"11:00–12:00", trainer:"Thibaud", spelers:["Van Nuffelen Gwen","Emma Paelinck"]},
-    {id:35, dag:"Zondag", tijd:"10:30–11:00", trainer:"Jo", spelers:["Lisette Vercauteren"]},
     {id:36, dag:"Zondag", tijd:"11:00–12:00", trainer:"Geert", spelers:["Cindy","Marianne","Ann Blommaert"]},
     {id:37, dag:"Zondag", tijd:"12:00–13:00", trainer:"Geert", spelers:["Hiel Veerle","Monique D'hondt","Stefaan Segers"]},
-    {id:38, dag:"Zondag", tijd:"10:00–11:00", trainer:"Jan/Jo", spelers:["Renee Claessens","Juliette Claessens","Elize Vercauteren"]}
+    {id:38, dag:"Zondag", tijd:"10:00–11:00", trainer:"Jan/Jo", spelers:["Renee Claessens","Juliette Claessens","Elize Vercauteren","Lisette Vercauteren"]}
   ]
 };
 // ============================================================
 
 const DAG_NR = {Maandag:1,Dinsdag:2,Woensdag:3,Donderdag:4,Vrijdag:5,Zaterdag:6,Zondag:0};
-let huidigeTrainer = "";
+let huidigeTraine = "";
+let vervangendTrainer = "";
 let registraties = {};
 
 function trainerMatch(trainerVeld, naam) {
@@ -219,7 +265,7 @@ function getTrainerDagen(trainer) {
     while (d.getDay() !== target) d.setDate(d.getDate() + 1);
     while (d <= SEIZOEN_EIND) {
       if (!isFeestdag(d)) {
-        const isToekomst = d >= vandaag;
+        const isToekomst = d > vandaag;
         const isVandaag = d.getTime() === vandaag.getTime();
         result.push({ dag: dagNaam, datum: new Date(d), isToekomst, isVandaag });
       }
@@ -244,7 +290,7 @@ function buildTrainerGrid() {
 }
 
 function selectTrainer(naam) {
-  huidigeTrainer = naam;
+  huidigeTraine = naam;
   document.getElementById("trainer-naam-display").textContent = naam;
   const dagSelect = document.getElementById("dag-select");
   dagSelect.innerHTML = "";
@@ -275,6 +321,9 @@ function selectTrainer(naam) {
   showScreen("screen-lessen");
 }
 
+// ============================================================
+// WIJZIGING 1: toekomstige datum blokkeren
+// ============================================================
 function onDagChange() {
   const val = document.getElementById("dag-select").value;
   if (!val || val.indexOf("|") === -1) return;
@@ -287,6 +336,26 @@ function onDagChange() {
   } else {
     pill.innerHTML = `<span>${formatDatum(datum)}</span><span class="week-label">INHAALWEEK</span>`;
   }
+
+  // Controleer of datum in toekomst ligt
+  const vandaag = new Date();
+  vandaag.setHours(0,0,0,0);
+  datum.setHours(0,0,0,0);
+  const isToekomst = datum > vandaag;
+
+  const banner = document.getElementById("toekomst-banner");
+  const submitBtn = document.getElementById("submit-btn");
+
+  if (isToekomst) {
+    banner.classList.add("zichtbaar");
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Registreer pas na de les";
+  } else {
+    banner.classList.remove("zichtbaar");
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Registratie versturen";
+  }
+
   buildGroepenView(dag);
 }
 
@@ -294,7 +363,7 @@ function buildGroepenView(dag) {
   const container = document.getElementById("groepen-container");
   container.innerHTML = "";
   registraties = {};
-  const groepen = DATA.groepen.filter(g => trainerMatch(g.trainer, huidigeTrainer) && g.dag === dag);
+  const groepen = DATA.groepen.filter(g => trainerMatch(g.trainer, huidigeTraine) && g.dag === dag);
 
   if (!groepen.length) {
     container.innerHTML = `<div class="geen-groepen">Geen groepen voor ${dag}.</div>`;
@@ -302,12 +371,13 @@ function buildGroepenView(dag) {
   }
 
   groepen.forEach(g => {
+    const defaultGever = vervangendTrainer || huidigeTraine;
     registraties[g.id] = {
       id: g.id,
       dag: g.dag,
       tijd: g.tijd,
       ingepland: g.trainer,
-      gever: huidigeTrainer,
+      gever: defaultGever,
       lesGegeven: null,
       opmerking: "",
       aanwezig: {}
@@ -321,7 +391,7 @@ function buildGroepenView(dag) {
     const tag = isGedeeld ? `<div class="groep-tag">Gedeeld: ${g.trainer}</div>` : "";
 
     const vervOpts = DATA.trainers.map(t =>
-      `<option value="${t}" ${t === huidigeTrainer ? "selected" : ""}>${t}</option>`
+      `<option value="${t}" ${t === defaultGever ? "selected" : ""}>${t}</option>`
     ).join("");
 
     card.innerHTML = `
@@ -340,17 +410,18 @@ function buildGroepenView(dag) {
         <div class="field-label">Trainer die lesgaf</div>
         <select class="field-select" id="gever-${g.id}" onchange="setGever(${g.id}, this.value)">${vervOpts}</select>
       </div>
-      <div class="field-row">
-        <div class="field-label">Opmerking (optioneel)</div>
-        <textarea class="field-textarea" id="opm-${g.id}" placeholder="Bv. geen les door regen, veld onbespeelbaar..." oninput="setOpmerking(${g.id}, this.value)"></textarea>
+      <div class="field-row" id="opm-row-${g.id}">
+        <div class="field-label" id="opm-label-${g.id}">Opmerking (optioneel)</div>
+        <textarea class="field-textarea" id="opm-${g.id}" placeholder="Bijv. les gegeven door andere trainer, bijzonderheden..." oninput="setOpmerking(${g.id}, this.value)"></textarea>
       </div>
+      <div class="validatie-fout" id="fout-${g.id}"></div>
       <div class="divider"></div>
       <div class="spelers-wrap">
         <div class="spelers-title">Aanwezigheid</div>
         ${g.spelers.map(s => {
           const k = s.replace(/[^a-zA-Z0-9]/g, '_');
           const esc = s.replace(/'/g,"\\'");
-          return `<div class="speler-row">
+          return `<div class="speler-row" id="row-${g.id}-${k}">
             <span class="speler-naam">${s}</span>
             <div class="aanw-toggle">
               <button class="aanw-btn" id="aanw-${g.id}-${k}-ja" onclick="setAanwezig(${g.id},'${esc}','ja')">Aanw.</button>
@@ -364,10 +435,34 @@ function buildGroepenView(dag) {
   });
 }
 
+// ============================================================
+// WIJZIGING 3: contextueel opmerkingenvak
+// ============================================================
 function setLes(id, val) {
   registraties[id].lesGegeven = val;
   document.getElementById(`les-yes-${id}`).className = "les-btn" + (val === "yes" ? " yes" : "");
   document.getElementById(`les-no-${id}`).className = "les-btn" + (val === "no" ? " no" : "");
+
+  const label = document.getElementById(`opm-label-${id}`);
+  const textarea = document.getElementById(`opm-${id}`);
+
+  if (val === "no") {
+    // Geen les: reden is verplicht
+    label.textContent = "Reden voor geen les (verplicht)";
+    label.className = "field-label verplicht";
+    textarea.className = "field-textarea verplicht-border";
+    textarea.placeholder = "Bv. regen/wind, veld onbespeelbaar, trainer ziek, feestdag, groep afwezig...";
+  } else {
+    // Les gegeven: opmerking optioneel
+    label.textContent = "Opmerking (optioneel)";
+    label.className = "field-label";
+    textarea.className = "field-textarea";
+    textarea.placeholder = "Bijv. les gegeven door andere trainer, bijzonderheden...";
+  }
+
+  // Verberg evt. eerder getoonde foutmelding
+  const fout = document.getElementById(`fout-${id}`);
+  if (fout) { fout.textContent = ""; fout.classList.remove("zichtbaar"); }
 }
 
 function setGever(id, val) { registraties[id].gever = val; }
@@ -378,9 +473,64 @@ function setAanwezig(id, speler, val) {
   const k = speler.replace(/[^a-zA-Z0-9]/g, '_');
   document.getElementById(`aanw-${id}-${k}-ja`).className = "aanw-btn" + (val === "ja" ? " aanwezig" : "");
   document.getElementById(`aanw-${id}-${k}-nee`).className = "aanw-btn" + (val === "nee" ? " afwezig" : "");
+
+  // Verwijder highlight als aanwezigheid ingevuld
+  const row = document.getElementById(`row-${id}-${k}`);
+  if (row) row.classList.remove("ontbreekt");
 }
 
+// ============================================================
+// WIJZIGING 2: verplichte aanwezigheid + verplichte reden
+// ============================================================
 async function submitRegistratie() {
+  // Validatie
+  let fouten = false;
+
+  for (const [id, reg] of Object.entries(registraties)) {
+    const foutEl = document.getElementById(`fout-${id}`);
+    foutEl.textContent = "";
+    foutEl.classList.remove("zichtbaar");
+
+    // Als geen keuze gemaakt: skip (niet blokkeren, alleen waarschuwen bij incomplete)
+    if (reg.lesGegeven === null) continue;
+
+    if (reg.lesGegeven === "no") {
+      // Reden is verplicht bij "geen les"
+      if (!reg.opmerking.trim()) {
+        const textarea = document.getElementById(`opm-${id}`);
+        textarea.className = "field-textarea verplicht-border";
+        foutEl.textContent = "Geef een reden op waarom de les niet doorging.";
+        foutEl.classList.add("zichtbaar");
+        fouten = true;
+      }
+    }
+
+    if (reg.lesGegeven === "yes") {
+      // Aanwezigheid verplicht voor alle spelers
+      const ontbrekend = Object.entries(reg.aanwezig)
+        .filter(([, v]) => v === null)
+        .map(([s]) => s);
+
+      if (ontbrekend.length > 0) {
+        ontbrekend.forEach(s => {
+          const k = s.replace(/[^a-zA-Z0-9]/g, '_');
+          const row = document.getElementById(`row-${id}-${k}`);
+          if (row) row.classList.add("ontbreekt");
+        });
+        foutEl.textContent = `Vul eerst de aanwezigheid in voor: ${ontbrekend.join(", ")}.`;
+        foutEl.classList.add("zichtbaar");
+        fouten = true;
+      }
+    }
+  }
+
+  if (fouten) {
+    // Scroll naar eerste fout
+    const eersteFout = document.querySelector(".validatie-fout.zichtbaar");
+    if (eersteFout) eersteFout.scrollIntoView({ behavior: "smooth", block: "center" });
+    return;
+  }
+
   const btn = document.getElementById("submit-btn");
   btn.disabled = true;
   btn.textContent = "Versturen...";
@@ -391,7 +541,7 @@ async function submitRegistratie() {
   const week = getWeekNummer(datum);
 
   const payload = {
-    trainer: huidigeTrainer,
+    trainer: huidigeTraine,
     dag,
     datum: datum.toLocaleDateString("nl-BE", { day: "numeric", month: "long", year: "numeric" }),
     datumISO: datum.toISOString().slice(0,10),
@@ -404,15 +554,63 @@ async function submitRegistratie() {
   } catch(e) {}
 
   const lessenGegeven = Object.values(registraties).filter(g => g.lesGegeven === "yes").length;
+  const naamDisplay = vervangendTrainer ? `${vervangendTrainer} (vervangt ${huidigeTraine})` : huidigeTraine;
   document.getElementById("confirm-text").textContent =
-    `${huidigeTrainer} · ${datum.toLocaleDateString("nl-BE", {day:"numeric",month:"long"})} · ${lessenGegeven} les${lessenGegeven !== 1 ? "sen" : ""} geregistreerd`;
+    `${naamDisplay} · ${datum.toLocaleDateString("nl-BE", {day:"numeric",month:"long"})} · ${lessenGegeven} les${lessenGegeven !== 1 ? "sen" : ""} geregistreerd`;
 
   btn.disabled = false;
   btn.textContent = "Registratie versturen";
   showScreen("screen-confirm");
 }
 
-function goBack() { showScreen("screen-login"); }
+function openVervangingScherm() {
+  const jijSel = document.getElementById("verv-jij-select");
+  const wieSel = document.getElementById("verv-wie-select");
+  const opts = DATA.trainers.map(t => `<option value="${t}">${t}</option>`).join("");
+  jijSel.innerHTML = `<option value="">Kies jouw naam...</option>` + opts;
+  wieSel.innerHTML = `<option value="">Kies de trainer die je vervangt...</option>` + opts;
+  showScreen("screen-vervanging");
+}
+
+function bevestigVervanging() {
+  const jij = document.getElementById("verv-jij-select").value;
+  const wie = document.getElementById("verv-wie-select").value;
+  if (!jij) { alert("Kies eerst wie jij bent."); return; }
+  if (!wie) { alert("Kies wie je vervangt."); return; }
+  if (jij === wie) { alert("Jij en de trainer die je vervangt kunnen niet dezelfde persoon zijn."); return; }
+
+  vervangendTrainer = jij;
+  huidigeTraine = wie;
+
+  document.getElementById("trainer-naam-display").textContent = `${jij} (vervangt ${wie})`;
+  const dagSelect = document.getElementById("dag-select");
+  dagSelect.innerHTML = "";
+  const dagen = getTrainerDagen(wie);
+
+  if (!dagen.length) {
+    dagSelect.innerHTML = "<option>Geen trainingen gevonden</option>";
+  } else {
+    let defaultIndex = 0;
+    dagen.forEach((item, i) => {
+      const opt = document.createElement("option");
+      opt.value = item.dag + "|" + item.datum.toISOString();
+      let label = formatDatum(item.datum);
+      if (item.isVandaag) { label = "Vandaag · " + label; defaultIndex = i; }
+      else if (!item.isToekomst) { label = "↺ " + label; }
+      opt.textContent = label;
+      dagSelect.appendChild(opt);
+    });
+    if (!dagen[defaultIndex].isVandaag) {
+      const firstFuture = dagen.findIndex(d => d.isToekomst);
+      if (firstFuture !== -1) defaultIndex = firstFuture;
+    }
+    dagSelect.selectedIndex = defaultIndex;
+  }
+  onDagChange();
+  showScreen("screen-lessen");
+}
+
+function goBack() { vervangendTrainer = ""; showScreen("screen-login"); }
 function showScreen(id) {
   document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
   document.getElementById(id).classList.add("active");
