@@ -337,16 +337,47 @@ function onDagChange() {
     pill.innerHTML = `<span>${formatDatum(datum)}</span><span class="week-label">INHAALWEEK</span>`;
   }
 
-  // Controleer of datum in toekomst ligt
+  // Controleer of datum in toekomst ligt of vandaag voor de eerste les
+  const nu = new Date();
   const vandaag = new Date();
   vandaag.setHours(0,0,0,0);
-  datum.setHours(0,0,0,0);
-  const isToekomst = datum > vandaag;
+  const datumOnly = new Date(datum);
+  datumOnly.setHours(0,0,0,0);
+  const isToekomst = datumOnly > vandaag;
+  const isVandaag = datumOnly.getTime() === vandaag.getTime();
 
   const banner = document.getElementById("toekomst-banner");
   const submitBtn = document.getElementById("submit-btn");
 
+  let voorEersteLes = false;
+  let vroegsteStart = null;
+  if (isVandaag) {
+    const groepenVandaag = DATA.groepen.filter(g => trainerMatch(g.trainer, huidigeTraine) && g.dag === dag);
+    groepenVandaag.forEach(g => {
+      if (!g.tijd) return;
+      const start = g.tijd.split("–")[0].trim();
+      const [u, m] = start.split(":").map(Number);
+      if (isNaN(u) || isNaN(m)) return;
+      const startDate = new Date(datum);
+      startDate.setHours(u, m, 0, 0);
+      if (vroegsteStart === null || startDate < vroegsteStart) {
+        vroegsteStart = startDate;
+      }
+    });
+    if (vroegsteStart && nu < vroegsteStart) {
+      voorEersteLes = true;
+    }
+  }
+
   if (isToekomst) {
+    banner.textContent = "📅 Deze dag ligt in de toekomst. Registreer pas na de les.";
+    banner.classList.add("zichtbaar");
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Registreer pas na de les";
+  } else if (voorEersteLes) {
+    const uu = String(vroegsteStart.getHours()).padStart(2, "0");
+    const mm = String(vroegsteStart.getMinutes()).padStart(2, "0");
+    banner.textContent = `⏰ Je eerste les begint om ${uu}:${mm}. Registreer pas na de les.`;
     banner.classList.add("zichtbaar");
     submitBtn.disabled = true;
     submitBtn.textContent = "Registreer pas na de les";
