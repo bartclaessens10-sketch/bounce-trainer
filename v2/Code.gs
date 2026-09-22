@@ -656,6 +656,10 @@ function bouwOverzicht() {
   }
   const n = maanden.length;
   const R = "Registraties!";
+  // Formules gebruiken het scheidingsteken van de taalinstelling van de Sheet:
+  // "," in het Engels, ";" in o.a. nl_BE en fr_BE (waar de komma het decimaalteken is).
+  const sep = /^(en|ja|zh|ko|th|he|iw|hi)/i.test(ss.getSpreadsheetLocale()) ? ',' : ';';
+  const lok = function (f) { return sep === ',' ? f : f.replace(/,/g, sep); };
   const blokken = [
     { titel: 'Gegeven lessen per trainer per maand', extra: '' },
     { titel: 'Waarvan lessen van 1,5 uur (90 min of langer)', extra: ',' + R + '$J:$J,">=90"' }
@@ -686,7 +690,7 @@ function bouwOverzicht() {
       f.push('=IF($A' + r + '="","",SUM(B' + r + ':' + kolom_(n + 1) + r + '))');
       formules.push(f);
     }
-    sh.getRange(rij + 1, 1, RIJEN, n + 2).setFormulas(formules);
+    sh.getRange(rij + 1, 1, RIJEN, n + 2).setFormulas(formules.map(function (r) { return r.map(lok); }));
     rij += RIJEN + 2;
   });
 
@@ -703,7 +707,7 @@ function bouwOverzicht() {
     f.push('=COUNTIFS(' + R + '$D:$D,"niet_doorgegaan",' + R + '$I:$I,"ja",' + R + '$B:$B,">="&' + col + '$' + kopRij + ',' + R + '$B:$B,"<"&EDATE(' + col + '$' + kopRij + ',1))');
   }
   sh.getRange(rij + 1, 1).setValue('Aantal lessen');
-  sh.getRange(rij + 1, 2, 1, n).setFormulas([f]);
+  sh.getRange(rij + 1, 2, 1, n).setFormulas([f.map(lok)]);
   sh.setColumnWidth(1, 160);
   sh.setFrozenColumns(1);
 }

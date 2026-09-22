@@ -143,6 +143,12 @@ ok('stopgezette groep: geschiedenis blijft, nieuwe registraties niet', () => {
   assert.ok(jebbe.tekst.includes('Vr 16/10 16:00'));
   assert.ok(!jebbe.tekst.includes('Di 20/10 18:00')); // geen open lessen meer voor een stopgezette groep
 });
+ok('formules in het Overzicht met ; (Belgische taalinstelling)', () => {
+  const f = ss.getSheetByName('Overzicht').d.flat().filter(x => typeof x === 'string' && x.startsWith('='));
+  assert.ok(f.length > 100);
+  f.forEach(x => assert.ok(!x.includes(','), x));
+  assert.ok(f.find(x => x.includes('COUNTIFS')).includes('COUNTIFS(Registraties!$E:$E;$A5;'));
+});
 ok('setup overschrijft bestaande gegevens niet', () => {
   const voor = ss.getSheetByName('Registraties').getLastRow();
   ctx.setup();

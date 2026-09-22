@@ -64,7 +64,8 @@ function maakOmgeving() {
     getSheets: () => sheets.slice(),
     deleteSheet: s => sheets.splice(sheets.indexOf(s), 1),
     setSpreadsheetTimeZone: t => { ssTz = t; },
-    getSpreadsheetTimeZone: () => ssTz
+    getSpreadsheetTimeZone: () => ssTz,
+    getSpreadsheetLocale: () => 'nl_BE'
   };
 
   function formatDate(d, tz, patroon) {
