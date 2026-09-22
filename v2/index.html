@@ -1,0 +1,773 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#101B2E">
+<title>Bounce trainers</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --zon: #FFDD00;
+    --inkt: #101B2E;
+    --flits: #E8452B;
+    --papier: #FFFCF5;
+    --groen: #1F8F55;
+    --groen-zacht: #E3F4EA;
+    --grijs: #8A909A;
+    --grijs-zacht: #EEEEEC;
+    --rood-zacht: #FDE7E3;
+    --lijn: #E4E0D6;
+    --zacht: #5B6474;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { margin: 0; }
+  body {
+    background: var(--papier);
+    color: var(--inkt);
+    font: 16px/1.4 Archivo, system-ui, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+  }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  .wrap { max-width: 520px; margin: 0 auto; padding: 0 16px 96px; }
+
+  /* kop */
+  header {
+    position: sticky; top: 0; z-index: 5;
+    background: var(--inkt); color: var(--papier);
+    padding: 12px 16px calc(12px);
+  }
+  header .in { max-width: 520px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .merk { font-family: 'Archivo Black', sans-serif; font-size: 20px; letter-spacing: .02em; line-height: 1; }
+  .merk span { color: var(--zon); }
+  .merk small { display: block; font: 600 12px Archivo, sans-serif; color: #C9CED8; letter-spacing: 0; margin-top: 3px; }
+  .wissel { background: none; border: 0; color: var(--papier); text-align: right; font-size: 13px; padding: 6px 0; }
+  .wissel b { color: var(--zon); text-decoration: underline; }
+
+  h1, h2 { font-family: 'Archivo Black', sans-serif; font-weight: 400; line-height: 1.15; }
+  h1 { font-size: 26px; margin: 24px 0 6px; }
+  h2 { font-size: 18px; margin: 24px 0 10px; }
+  .sub { color: var(--zacht); margin: 0 0 16px; font-size: 15px; }
+
+  /* wie ben je */
+  .namen { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .naam {
+    background: #fff; border: 2px solid var(--inkt); border-radius: 14px;
+    padding: 18px 10px; font-weight: 700; font-size: 18px; min-height: 64px;
+  }
+  .naam:active { background: var(--zon); }
+
+  /* nog in te vullen */
+  .open { background: var(--rood-zacht); border: 2px solid var(--flits); border-radius: 16px; padding: 14px; margin-top: 16px; }
+  .open h2 { color: var(--flits); margin: 0 0 8px; font-size: 17px; }
+  .open h3 { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--zacht); margin: 12px 0 4px; }
+  .openles {
+    display: flex; width: 100%; text-align: left; gap: 10px; align-items: center;
+    background: #fff; border: 0; border-radius: 10px; padding: 11px 12px; margin-top: 6px; min-height: 48px;
+  }
+  .openles .pijl { margin-left: auto; color: var(--flits); font-weight: 700; }
+  .meer { background: none; border: 0; color: var(--flits); font-weight: 700; padding: 10px 0 0; text-decoration: underline; }
+
+  /* weekstrook */
+  .week { margin-top: 20px; }
+  .weekkop { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .weekkop b { font-size: 15px; }
+  .pijltje {
+    width: 44px; height: 44px; border-radius: 50%; border: 2px solid var(--inkt); background: #fff;
+    font-size: 20px; font-weight: 700; line-height: 1;
+  }
+  .dagen { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+  .dag {
+    position: relative; background: #fff; border: 2px solid var(--lijn); border-radius: 12px;
+    padding: 8px 0 7px; text-align: center; min-height: 56px;
+  }
+  .dag .d { display: block; font-weight: 700; font-size: 14px; text-transform: capitalize; }
+  .dag .n { display: block; font-size: 13px; color: var(--zacht); }
+  .dag.leeg { opacity: .45; }
+  .dag.vandaag { border-color: var(--inkt); }
+  .dag.gekozen { background: var(--zon); border-color: var(--inkt); }
+  .dag .stip { position: absolute; top: 5px; right: 6px; width: 8px; height: 8px; border-radius: 50%; background: var(--flits); }
+
+  /* kaartjes */
+  .kaart {
+    display: block; width: 100%; text-align: left; background: #fff;
+    border: 2px solid var(--lijn); border-left-width: 8px; border-radius: 14px;
+    padding: 12px 14px; margin-top: 10px; min-height: 64px;
+  }
+  .kaart .rij1 { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; color: var(--zacht); }
+  .kaart .titel { font-weight: 700; font-size: 17px; margin: 2px 0; }
+  .kaart .st { font-size: 14px; font-weight: 600; margin-top: 4px; display: flex; align-items: center; gap: 6px; }
+  .bol { width: 12px; height: 12px; border-radius: 50%; flex: none; display: inline-block; border: 2px solid var(--lijn); background: #fff; }
+  .kaart.groen { border-color: var(--groen); background: var(--groen-zacht); }
+  .kaart.groen .st { color: var(--groen); }
+  .kaart.groen .bol, .bol.groen { background: var(--groen); border-color: var(--groen); }
+  .kaart.grijs { border-color: var(--grijs); background: var(--grijs-zacht); }
+  .kaart.grijs .st { color: #4E545D; }
+  .kaart.grijs .bol, .bol.grijs { background: var(--grijs); border-color: var(--grijs); }
+  .kaart.rood { border-color: var(--flits); }
+  .kaart.rood .st { color: var(--flits); }
+  .kaart.rood .bol, .bol.rood { background: var(--flits); border-color: var(--flits); }
+  .wacht { font-size: 12px; font-weight: 600; color: var(--zacht); margin-left: auto; }
+  .melding { background: #fff; border: 2px dashed var(--lijn); border-radius: 14px; padding: 18px; margin-top: 10px; color: var(--zacht); text-align: center; }
+
+  /* onderbalk */
+  nav.onder {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 6;
+    background: var(--inkt); padding: 8px 16px calc(8px + env(safe-area-inset-bottom));
+  }
+  nav.onder .in { max-width: 520px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  nav.onder button {
+    background: none; border: 0; color: #C9CED8; padding: 10px; border-radius: 10px; font-weight: 700; min-height: 48px;
+  }
+  nav.onder button.actief { background: var(--zon); color: var(--inkt); }
+
+  /* bottom sheet */
+  .scherm { position: fixed; inset: 0; background: rgba(16,27,46,.55); z-index: 20; display: flex; align-items: flex-end; justify-content: center; }
+  .blad {
+    background: var(--papier); width: 100%; max-width: 520px; max-height: 92vh; overflow-y: auto;
+    border-radius: 20px 20px 0 0; padding: 18px 16px calc(20px + env(safe-area-inset-bottom));
+    animation: op .18s ease-out;
+  }
+  @keyframes op { from { transform: translateY(40px); opacity: .5; } to { transform: none; opacity: 1; } }
+  .blad .greep { width: 44px; height: 5px; border-radius: 3px; background: var(--lijn); margin: 0 auto 12px; }
+  .blad h2 { margin: 0 0 4px; font-size: 20px; }
+  .blad .sub { margin-bottom: 14px; }
+  .knop {
+    display: block; width: 100%; border: 2px solid var(--inkt); border-radius: 14px;
+    padding: 16px; font-weight: 700; font-size: 17px; margin-top: 10px; min-height: 58px; background: #fff; text-align: left;
+  }
+  .knop small { display: block; font-weight: 400; font-size: 13px; color: var(--zacht); }
+  .knop.hoofd { background: var(--zon); }
+  .knop:disabled { opacity: .4; cursor: not-allowed; }
+  .knop.klein { min-height: 48px; padding: 12px 14px; font-size: 16px; margin-top: 8px; }
+  .knop.ok { background: var(--inkt); color: var(--papier); text-align: center; }
+  .terug { background: none; border: 0; padding: 8px 0; font-weight: 700; text-decoration: underline; }
+  .huidig { border-radius: 12px; padding: 12px; font-weight: 600; margin-bottom: 4px; }
+  .huidig.groen { background: var(--groen-zacht); color: var(--groen); }
+  .huidig.grijs { background: var(--grijs-zacht); color: #4E545D; }
+  .huidig small { display: block; font-weight: 400; color: var(--zacht); margin-top: 2px; }
+  .info { background: #fff; border-radius: 12px; padding: 12px; font-size: 14px; color: var(--zacht); margin-top: 10px; }
+  label.veld { display: block; margin-top: 14px; font-size: 14px; color: var(--zacht); }
+  label.veld input, label.veld textarea {
+    display: block; width: 100%; margin-top: 4px; padding: 12px; border: 2px solid var(--lijn); border-radius: 10px; background: #fff; font-size: 16px;
+  }
+  .keuze { display: flex; align-items: center; gap: 10px; background: #fff; border: 2px solid var(--lijn); border-radius: 12px; padding: 14px; margin-top: 8px; min-height: 52px; }
+  .keuze input { width: 22px; height: 22px; accent-color: var(--inkt); }
+  .keuze:has(input:checked) { border-color: var(--inkt); background: #FFF6C2; }
+
+  /* archief en overzicht */
+  .teller { background: var(--inkt); color: var(--papier); border-radius: 14px; padding: 14px; font-weight: 600; }
+  .teller b { color: var(--zon); }
+  .lijst { background: #fff; border: 2px solid var(--lijn); border-radius: 14px; overflow: hidden; }
+  .lijst .r { display: flex; gap: 10px; align-items: center; padding: 12px 14px; border-top: 1px solid var(--lijn); width: 100%; background: none; border-left: 0; border-right: 0; border-bottom: 0; text-align: left; }
+  .lijst .r:first-child { border-top: 0; }
+  .lijst .r .rechts { margin-left: auto; font-weight: 700; white-space: nowrap; }
+  .lijst .r .klein { font-size: 13px; color: var(--zacht); }
+  .lijst .uitklap { background: var(--papier); padding: 4px 14px 12px 36px; font-size: 14px; }
+  .lijst .uitklap div { padding: 4px 0; border-bottom: 1px dashed var(--lijn); }
+  .chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; }
+  .chip { flex: none; border: 2px solid var(--inkt); background: #fff; border-radius: 999px; padding: 8px 14px; font-weight: 700; font-size: 14px; min-height: 40px; }
+  .chip.aan { background: var(--zon); }
+  .pin { font-size: 32px; letter-spacing: .5em; text-align: center; width: 100%; padding: 14px; border: 2px solid var(--inkt); border-radius: 14px; background: #fff; }
+  .beheer { background: var(--zon); border-radius: 12px; padding: 10px 12px; font-size: 14px; font-weight: 600; margin-top: 12px; }
+  .rij2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .link { background: none; border: 0; color: var(--zacht); text-decoration: underline; padding: 16px 0; display: block; margin: 16px auto 0; font-size: 14px; }
+  .fout { color: var(--flits); font-weight: 600; margin-top: 10px; }
+
+  /* melding onderaan */
+  #toast {
+    position: fixed; left: 50%; bottom: calc(80px + env(safe-area-inset-bottom)); transform: translateX(-50%);
+    background: var(--inkt); color: var(--papier); padding: 12px 18px; border-radius: 12px; font-weight: 600;
+    z-index: 30; max-width: calc(100% - 32px); box-shadow: 0 6px 20px rgba(0,0,0,.2); display: none;
+  }
+  #toast.fout { background: var(--flits); }
+  #netwerk { background: var(--flits); color: #fff; text-align: center; font-size: 13px; font-weight: 600; padding: 6px 16px; display: none; }
+</style>
+</head>
+<body>
+<header><div class="in">
+  <div class="merk">BOUNCE <span>trainers</span><small>Winter 2026-2027</small></div>
+  <button class="wissel" id="wissel" hidden></button>
+</div></header>
+<div id="netwerk"></div>
+<main class="wrap" id="app"><p class="sub" style="margin-top:24px">Laden…</p></main>
+<nav class="onder" id="nav" hidden><div class="in">
+  <button data-tab="lessen">Lessen</button>
+  <button data-tab="mijn">Mijn lessen</button>
+</div></nav>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ============================================================
+   Bounce trainersapp v2 · per groep
+   Zet hieronder de web-app-URL van Apps Script (eindigt op /exec).
+   ============================================================ */
+const API_URL = '';
+
+const LOKAAL = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+const API = LOKAAL ? '/api' : API_URL;
+
+const DAGEN = ['zondag', 'maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag'];
+const DAGKORT = ['zo', 'ma', 'di', 'wo', 'do', 'vr', 'za'];
+const MAANDEN = ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december'];
+
+/* ---------- opslag op de gsm (mag falen) ---------- */
+function lsGet(k, def) { try { const v = localStorage.getItem(k); return v == null ? def : JSON.parse(v); } catch (e) { return def; } }
+function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+function ssGet(k) { try { return sessionStorage.getItem(k); } catch (e) { return null; } }
+function ssSet(k, v) { try { v == null ? sessionStorage.removeItem(k) : sessionStorage.setItem(k, v); } catch (e) {} }
+
+const S = {
+  data: lsGet('bt2_data', null),
+  ik: lsGet('bt2_ik', null),
+  wachtrij: lsGet('bt2_wachtrij', []),
+  tab: 'lessen',
+  dag: null,
+  pin: ssGet('bt2_pin'),
+  janMaand: null,
+  janOpen: {},
+  toonAlleAndere: false,
+  laadFout: null
+};
+
+/* ---------- datums (altijd als jjjj-mm-dd, de server bepaalt "vandaag") ---------- */
+function plus(iso, n) { const d = new Date(iso + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); }
+function wd(iso) { return new Date(iso + 'T00:00:00Z').getUTCDay(); }
+function maandag(iso) { return plus(iso, -((wd(iso) + 6) % 7)); }
+function dm(iso) { const p = iso.split('-'); return +p[2] + '/' + +p[1]; }
+function vandaag() { return S.data ? S.data.vandaag : new Date().toISOString().slice(0, 10); }
+function lesTitel(g, iso) {
+  const d = DAGEN[wd(iso)];
+  return d.charAt(0).toUpperCase() + d.slice(1) + ' ' + dm(iso) + ' · ' + g.start + ' · ' + g.naam;
+}
+function kort(g, iso) { return DAGKORT[wd(iso)] + ' ' + dm(iso) + ' · ' + g.start; }
+
+/* ---------- registraties: server + wat nog in de wachtrij zit ---------- */
+function sleutel(datum, gid) { return datum + '|' + gid; }
+function regKaart() {
+  const k = {};
+  (S.data ? S.data.registraties : []).forEach(r => { k[sleutel(r.datum, r.groep_id)] = r; });
+  S.wachtrij.forEach(w => {
+    const vorige = k[sleutel(w.datum, w.groep_id)];
+    k[sleutel(w.datum, w.groep_id)] = {
+      datum: w.datum, groep_id: w.groep_id, status: w.status,
+      gegeven_door: w.status === 'gegeven' ? w.gegeven_door : '',
+      reden: w.reden === 'andere' ? 'andere: ' + w.reden_tekst : (w.reden || ''),
+      opmerking: w.opmerking || '', ingevuld_door: w.ingevuld_door,
+      sinds: vorige ? vorige.sinds : w.tijdstip, tijdstip: w.tijdstip, wacht: true
+    };
+  });
+  return k;
+}
+function groep(id) { return S.data.groepen.find(g => g.id === id); }
+function status(g, iso, R) {
+  const r = R[sleutel(iso, g.id)];
+  if (r) return r.status === 'gegeven' ? 'groen' : 'grijs';
+  return iso < vandaag() ? 'rood' : 'neutraal';
+}
+function lesnr(g, iso) { return g.lessen.indexOf(iso) + 1; }
+
+/* ---------- netwerk ---------- */
+async function haalData() {
+  if (!API) { S.laadFout = 'De app is nog niet gekoppeld aan de Sheet (API_URL ontbreekt).'; render(); return; }
+  try {
+    const res = await fetch(API + '?actie=data', { cache: 'no-store' });
+    const j = await res.json();
+    if (!j.ok) throw new Error(j.fout || 'Fout bij het laden');
+    S.data = j; S.laadFout = null;
+    lsSet('bt2_data', j);
+  } catch (e) {
+    S.laadFout = S.data ? 'Geen verbinding. Je ziet de laatst geladen gegevens.' : 'Kan de lessen niet laden. Controleer je verbinding en probeer opnieuw.';
+  }
+  render();
+}
+
+async function post(body) {
+  const res = await fetch(API, { method: 'POST', body: JSON.stringify(body) }); // text/plain: geen CORS-preflight
+  const tekst = await res.text();
+  try { return JSON.parse(tekst); } catch (e) { throw new Error('geen antwoord van de server'); }
+}
+
+let bezig = false;
+async function verstuur(naTik) {
+  if (bezig || !S.wachtrij.length || !API) { toonNetwerk(); return; }
+  bezig = true;
+  while (S.wachtrij.length) {
+    const w = S.wachtrij[0];
+    const body = Object.assign({ actie: 'registreer' }, w);
+    delete body.beheer;
+    if (w.beheer) body.pin = S.pin || '';
+    let res;
+    try { res = await post(body); } catch (e) { // geen verbinding: blijft in de wachtrij
+      if (naTik) toast('Geen verbinding. Bewaard op je gsm, wordt vanzelf verstuurd.');
+      break;
+    }
+    S.wachtrij.shift();
+    lsSet('bt2_wachtrij', S.wachtrij);
+    if (res.ok) {
+      const lijst = S.data.registraties.filter(r => !(r.datum === res.registratie.datum && r.groep_id === res.registratie.groep_id));
+      lijst.push(res.registratie);
+      S.data.registraties = lijst;
+      lsSet('bt2_data', S.data);
+      toast('Opgeslagen ✓');
+    } else {
+      toast(res.fout || 'Niet opgeslagen.', true);
+    }
+    render();
+  }
+  bezig = false;
+  toonNetwerk();
+}
+
+function toonNetwerk() {
+  const el = document.getElementById('netwerk');
+  const n = S.wachtrij.length;
+  if (n) {
+    el.textContent = n === 1 ? '1 les wacht op verbinding. Ze wordt vanzelf verstuurd.' : n + ' lessen wachten op verbinding. Ze worden vanzelf verstuurd.';
+    el.style.display = 'block';
+  } else if (S.laadFout) {
+    el.textContent = S.laadFout; el.style.display = 'block';
+  } else {
+    el.style.display = 'none';
+  }
+}
+
+function nieuweId() {
+  return (crypto && crypto.randomUUID) ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2);
+}
+
+function bewaar(g, iso, velden) {
+  const w = Object.assign({
+    verzoek_id: nieuweId(), datum: iso, groep_id: g.id,
+    ingevuld_door: S.ik || 'Jan', tijdstip: new Date().toISOString(), beheer: !!S.pin
+  }, velden);
+  S.wachtrij.push(w);
+  lsSet('bt2_wachtrij', S.wachtrij);
+  sluitBlad();
+  render();
+  toast(navigator.onLine === false ? 'Geen verbinding. Bewaard op je gsm, wordt vanzelf verstuurd.' : 'Versturen…');
+  verstuur(true);
+}
+
+/* ---------- melding ---------- */
+let toastTimer;
+function toast(t, fout) {
+  const el = document.getElementById('toast');
+  el.textContent = t; el.className = fout ? 'fout' : ''; el.style.display = 'block';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.style.display = 'none'; }, fout ? 6000 : 2200);
+}
+
+/* ---------- kleine helpers ---------- */
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+function h(html) { document.getElementById('app').innerHTML = html; }
+function trainersTekst(g) { return g.trainers.length ? g.trainers.join(' en ') : 'trainer nog onbekend'; }
+function statusTekst(st, r) {
+  if (st === 'groen') return 'Gegeven door ' + esc(r.gegeven_door);
+  if (st === 'grijs') return 'Ging niet door · ' + esc(r.reden);
+  if (st === 'rood') return 'Nog niet ingevuld';
+  return 'Nog niet aan de orde';
+}
+
+/* ============================================================
+   Schermen
+   ============================================================ */
+function render() {
+  const wissel = document.getElementById('wissel');
+  const nav = document.getElementById('nav');
+  toonNetwerk();
+
+  if (S.tab === 'jan') { wissel.hidden = true; nav.hidden = true; return renderJan(); }
+  if (!S.ik) { wissel.hidden = true; nav.hidden = true; return renderWie(); }
+  if (!S.data) {
+    wissel.hidden = true; nav.hidden = true;
+    return h('<h1>Even geduld</h1><p class="sub">' + esc(S.laadFout || 'Laden…') + '</p>' +
+      (S.laadFout ? '<button class="knop ok" onclick="haalData()">Opnieuw proberen</button>' : ''));
+  }
+  wissel.hidden = false;
+  wissel.innerHTML = 'Niet ' + esc(S.ik) + '? <b>Wissel</b>';
+  nav.hidden = false;
+  nav.querySelectorAll('button').forEach(b => b.classList.toggle('actief', b.dataset.tab === S.tab));
+  if (S.tab === 'mijn') return renderMijn();
+  renderStart();
+}
+
+/* 5.1 Wie ben je? */
+function renderWie() {
+  if (!S.data) {
+    return h('<h1>Wie ben je?</h1><p class="sub">' + esc(S.laadFout || 'Laden…') + '</p>' +
+      (S.laadFout ? '<button class="knop ok" onclick="haalData()">Opnieuw proberen</button>' : ''));
+  }
+  h('<h1>Wie ben je?</h1><p class="sub">Tik op je naam. Je gsm onthoudt je keuze.</p>' +
+    '<div class="namen">' + S.data.trainers.map(n => '<button class="naam" data-naam="' + esc(n) + '">' + esc(n) + '</button>').join('') + '</div>' +
+    '<button class="link" onclick="naarJan()">Overzicht voor Jan</button>');
+  document.querySelectorAll('.naam').forEach(b => b.onclick = () => {
+    S.ik = b.dataset.naam; lsSet('bt2_ik', S.ik); S.tab = 'lessen'; S.dag = null; render(); window.scrollTo(0, 0);
+  });
+}
+
+/* 5.2 Startscherm */
+function openLijsten(R) {
+  const v = vandaag();
+  const mijn = [], andere = [];
+  S.data.groepen.forEach(g => g.lessen.forEach(iso => {
+    if (iso >= v || R[sleutel(iso, g.id)]) return;
+    const item = { g, iso };
+    if (g.trainers.indexOf(S.ik) >= 0) mijn.push(item);
+    else if (iso >= plus(v, -7)) andere.push(item);
+  }));
+  // recentste eerst: gisteren vergeten is het meest waarschijnlijke geval
+  const sorteer = (a, b) => b.iso.localeCompare(a.iso) || (a.g.start + a.g.terrein).localeCompare(b.g.start + b.g.terrein);
+  return { mijn: mijn.sort(sorteer), andere: andere.sort(sorteer) };
+}
+
+function renderStart() {
+  const R = regKaart();
+  const v = vandaag();
+  if (!S.dag) S.dag = wd(v) === 0 ? plus(v, -1) : v;
+  const ma = maandag(S.dag);
+  let html = '';
+
+  // 1. nog in te vullen
+  const o = openLijsten(R);
+  const totaal = o.mijn.length + o.andere.length;
+  if (totaal) {
+    const rij = x => '<button class="openles" data-g="' + x.g.id + '" data-d="' + x.iso + '"><span class="bol rood"></span><span><b>' +
+      esc(kort(x.g, x.iso)) + '</b><br>' + esc(x.g.naam) + ' · ' + esc(x.g.terrein) + '</span><span class="pijl">›</span></button>';
+    html += '<section class="open"><h2>Nog in te vullen (' + totaal + ')</h2>';
+    if (o.mijn.length) {
+      const toon = S.toonAlleMijn ? o.mijn : o.mijn.slice(0, 5);
+      html += (o.andere.length ? '<h3>Jouw groepen</h3>' : '') + toon.map(rij).join('');
+      if (o.mijn.length > 5 && !S.toonAlleMijn) html += '<button class="meer" id="meermijn">Toon alle ' + o.mijn.length + '</button>';
+    }
+    if (o.andere.length) {
+      const toon = S.toonAlleAndere ? o.andere : o.andere.slice(0, 3);
+      html += '<h3>Andere groepen, laatste 7 dagen</h3>' + toon.map(rij).join('');
+      if (o.andere.length > 3 && !S.toonAlleAndere) html += '<button class="meer" id="meer">Toon alle ' + o.andere.length + '</button>';
+    }
+    html += '</section>';
+  }
+
+  // 2. weekstrook
+  const reeks = S.data.reeks;
+  const titelWeek = 'Week van ' + dm(ma) + ' tot ' + dm(plus(ma, 5));
+  html += '<section class="week"><div class="weekkop"><button class="pijltje" id="vorige" aria-label="Vorige week">‹</button><b>' + titelWeek +
+    '</b><button class="pijltje" id="volgende" aria-label="Volgende week">›</button></div><div class="dagen">';
+  for (let i = 0; i < 6; i++) {
+    const d = plus(ma, i);
+    const lessen = S.data.groepen.filter(g => g.lessen.indexOf(d) >= 0);
+    const rood = lessen.some(g => status(g, d, R) === 'rood');
+    html += '<button class="dag' + (d === S.dag ? ' gekozen' : '') + (d === v ? ' vandaag' : '') + (lessen.length ? '' : ' leeg') +
+      '" data-dag="' + d + '"><span class="d">' + DAGKORT[wd(d)] + '</span><span class="n">' + dm(d) + '</span>' + (rood ? '<span class="stip"></span>' : '') + '</button>';
+  }
+  html += '</div></section>';
+
+  // 3. groepen van de gekozen dag
+  const dagNaam = DAGEN[wd(S.dag)];
+  html += '<h2>' + dagNaam.charAt(0).toUpperCase() + dagNaam.slice(1) + ' ' + dm(S.dag) + (S.dag === v ? ' · vandaag' : '') + '</h2>';
+  const vanDag = S.data.groepen.filter(g => g.lessen.indexOf(S.dag) >= 0)
+    .sort((a, b) => (a.start + a.terrein).localeCompare(b.start + b.terrein));
+  if (!vanDag.length) {
+    const heeftGroepen = S.data.groepen.some(g => g.dag === DAGKORT[wd(S.dag)]);
+    let msg = 'Op deze dag zijn er geen lessen.';
+    if (S.dag < reeks.start || S.dag > reeks.einde) msg = 'Buiten de lessenreeks (' + dm(reeks.start) + ' tot ' + dm(reeks.einde) + ').';
+    else if (heeftGroepen) msg = 'Geen les deze dag: vakantie of geen lesweek.';
+    html += '<div class="melding">' + msg + '</div>';
+  }
+  vanDag.forEach(g => {
+    const st = status(g, S.dag, R);
+    const r = R[sleutel(S.dag, g.id)];
+    html += '<button class="kaart ' + st + '" data-g="' + g.id + '" data-d="' + S.dag + '">' +
+      '<div class="rij1"><span>' + g.start + '-' + g.einde + ' · ' + esc(g.terrein) + '</span><span>les ' + lesnr(g, S.dag) + '/' + g.lessen.length + '</span></div>' +
+      '<div class="titel">' + esc(g.naam) + '</div>' +
+      '<div class="klein" style="font-size:14px;color:var(--zacht)">' + esc(trainersTekst(g)) + '</div>' +
+      '<div class="st"><span class="bol"></span>' + statusTekst(st, r) + (r && r.wacht ? '<span class="wacht">wordt verstuurd…</span>' : '') + '</div></button>';
+  });
+
+  html += '<button class="link" onclick="naarJan()">Overzicht voor Jan</button>';
+  h(html);
+
+  document.querySelectorAll('[data-g]').forEach(b => b.onclick = () => openBlad(groep(b.dataset.g), b.dataset.d));
+  document.querySelectorAll('[data-dag]').forEach(b => b.onclick = () => { S.dag = b.dataset.dag; render(); });
+  document.getElementById('vorige').onclick = () => { S.dag = plus(S.dag, -7); render(); };
+  document.getElementById('volgende').onclick = () => { S.dag = plus(S.dag, 7); render(); };
+  const meer = document.getElementById('meer');
+  if (meer) meer.onclick = () => { S.toonAlleAndere = true; render(); };
+  const meerMijn = document.getElementById('meermijn');
+  if (meerMijn) meerMijn.onclick = () => { S.toonAlleMijn = true; render(); };
+}
+
+/* 5.3 Een les invullen */
+function magWijzigen(r) {
+  if (!r) return true;
+  if (S.pin) return true;
+  if (r.ingevuld_door !== S.ik) return false;
+  return (Date.now() - new Date(r.sinds).getTime()) / 86400000 <= S.data.bewerkDagen;
+}
+
+function openBlad(g, iso, stap) {
+  const R = regKaart();
+  const r = R[sleutel(iso, g.id)];
+  const st = status(g, iso, R);
+  const toekomst = iso > vandaag();
+  let body = '<div class="greep"></div><h2>' + esc(lesTitel(g, iso)) + ' · les ' + lesnr(g, iso) + '</h2>' +
+    '<p class="sub">' + g.start + '-' + g.einde + ' · ' + esc(g.terrein) + ' · ' + esc(trainersTekst(g)) + '</p>';
+
+  if (r) {
+    body += '<div class="huidig ' + st + '">' + statusTekst(st, r) +
+      '<small>Ingevuld door ' + esc(r.ingevuld_door) + (r.opmerking ? ' · "' + esc(r.opmerking) + '"' : '') + (r.wacht ? ' · wordt verstuurd…' : '') + '</small></div>';
+    if (!magWijzigen(r)) {
+      body += '<div class="info">Klopt dit niet? Vraag het aan Jan. Hij kan het aanpassen.</div>' +
+        '<button class="knop ok" onclick="sluitBlad()">Sluiten</button>';
+      return toonBlad(body);
+    }
+    body += '<p class="sub" style="margin:12px 0 0">Aanpassen:</p>';
+  }
+
+  if (!stap) {
+    body +=
+      (S.ik ? '<button class="knop hoofd" id="ikgaf"' + (toekomst ? ' disabled' : '') + '>Ik gaf deze les</button>' : '') +
+      '<button class="knop' + (S.ik ? '' : ' hoofd') + '" id="ander"' + (toekomst ? ' disabled' : '') + '>' + (S.ik ? 'Iemand anders gaf deze les' : 'De les werd gegeven') + '</button>' +
+      '<button class="knop" id="niet">De les ging niet door</button>' +
+      (toekomst ? '<div class="info">Deze les is nog niet gegeven. Vooraf kan je enkel aanduiden dat ze niet doorgaat.</div>' : '') +
+      '<label class="veld">Opmerking (niet verplicht)<input id="opm" maxlength="300" autocomplete="off"></label>' +
+      '<button class="terug" onclick="sluitBlad()" style="margin-top:10px">Annuleren</button>';
+    toonBlad(body);
+    const opm = () => document.getElementById('opm').value.trim();
+    const ikgaf = document.getElementById('ikgaf');
+    if (ikgaf) ikgaf.onclick = () => bewaar(g, iso, { status: 'gegeven', gegeven_door: S.ik, opmerking: opm() });
+    document.getElementById('ander').onclick = () => { S._opm = opm(); openBlad(g, iso, 'ander'); };
+    document.getElementById('niet').onclick = () => { S._opm = opm(); openBlad(g, iso, 'niet'); };
+    return;
+  }
+
+  if (stap === 'ander') {
+    body += '<p class="sub" style="margin:8px 0 0"><b>Wie gaf de les?</b></p><div class="namen" style="margin-top:8px">' +
+      S.data.trainers.filter(n => n !== S.ik).map(n => '<button class="naam" data-naam="' + esc(n) + '">' + esc(n) + '</button>').join('') +
+      '</div><button class="terug" id="terug" style="margin-top:12px">‹ Terug</button>';
+    toonBlad(body);
+    document.querySelectorAll('.blad .naam').forEach(b => b.onclick = () =>
+      bewaar(g, iso, { status: 'gegeven', gegeven_door: b.dataset.naam, opmerking: S._opm || '' }));
+    document.getElementById('terug').onclick = () => openBlad(g, iso);
+    return;
+  }
+
+  if (stap === 'niet') {
+    body += '<p class="sub" style="margin:8px 0 0"><b>Waarom ging de les niet door?</b></p>' +
+      S.data.redenen.map((rd, i) => '<label class="keuze"><input type="radio" name="reden" value="' + esc(rd) + '">' +
+        esc(rd.charAt(0).toUpperCase() + rd.slice(1)) + '</label>').join('') +
+      '<label class="veld" id="andereveld" hidden>Wat was er? (verplicht)<input id="andere" maxlength="120" autocomplete="off"></label>' +
+      '<div class="fout" id="nietfout" hidden></div>' +
+      '<button class="knop ok" id="opslaan">Opslaan</button>' +
+      '<button class="terug" id="terug" style="margin-top:8px">‹ Terug</button>';
+    toonBlad(body);
+    document.querySelectorAll('input[name=reden]').forEach(i => i.onchange = () => {
+      document.getElementById('andereveld').hidden = i.value !== 'andere' || !i.checked;
+      if (i.value === 'andere' && i.checked) document.getElementById('andere').focus();
+    });
+    document.getElementById('terug').onclick = () => openBlad(g, iso);
+    document.getElementById('opslaan').onclick = () => {
+      const k = document.querySelector('input[name=reden]:checked');
+      const f = document.getElementById('nietfout');
+      if (!k) { f.textContent = 'Kies een reden.'; f.hidden = false; return; }
+      const tekst = document.getElementById('andere').value.trim();
+      if (k.value === 'andere' && !tekst) { f.textContent = 'Schrijf kort wat er was.'; f.hidden = false; return; }
+      bewaar(g, iso, { status: 'niet_doorgegaan', reden: k.value, reden_tekst: tekst, opmerking: S._opm || '' });
+    };
+  }
+}
+
+function toonBlad(inhoud) {
+  let s = document.getElementById('scherm');
+  if (!s) {
+    s = document.createElement('div');
+    s.id = 'scherm'; s.className = 'scherm';
+    s.innerHTML = '<div class="blad" role="dialog" aria-modal="true"></div>';
+    s.onclick = e => { if (e.target === s) sluitBlad(); };
+    document.body.appendChild(s);
+  }
+  s.querySelector('.blad').innerHTML = inhoud;
+}
+function sluitBlad() { const s = document.getElementById('scherm'); if (s) s.remove(); }
+
+/* 5.4 Mijn lessen */
+function renderMijn() {
+  const R = regKaart();
+  const mijn = Object.values(R).filter(r => r.status === 'gegeven' && r.gegeven_door === S.ik && groep(r.groep_id))
+    .sort((a, b) => b.datum.localeCompare(a.datum) || groep(b.groep_id).start.localeCompare(groep(a.groep_id).start));
+  const perMaand = {};
+  mijn.forEach(r => { const m = r.datum.slice(0, 7); (perMaand[m] = perMaand[m] || []).push(r); });
+  const maanden = Object.keys(perMaand).sort();
+  const mNaam = m => MAANDEN[+m.slice(5) - 1];
+  let html = '<h1>Mijn lessen</h1><p class="sub">Alle lessen die jij gaf, volgens de app.</p>';
+  if (!mijn.length) {
+    html += '<div class="melding">Nog geen lessen. Tik na je les op "Ik gaf deze les".</div>';
+  } else {
+    html += '<div class="teller">' + maanden.map(m => {
+      const n = perMaand[m].length;
+      return mNaam(m).charAt(0).toUpperCase() + mNaam(m).slice(1) + ': <b>' + n + ' ' + (n === 1 ? 'les' : 'lessen') + '</b>';
+    }).join(' · ') + '</div>';
+    maanden.slice().reverse().forEach(m => {
+      html += '<h2>' + mNaam(m).charAt(0).toUpperCase() + mNaam(m).slice(1) + ' ' + m.slice(0, 4) + '</h2><div class="lijst">' +
+        perMaand[m].map(r => {
+          const g = groep(r.groep_id);
+          return '<button class="r" data-g="' + g.id + '" data-d="' + r.datum + '"><span class="bol groen"></span><span><b>' + esc(kort(g, r.datum)) + '</b><br><span class="klein">' +
+            esc(g.naam) + ' · ' + esc(g.terrein) + (g.duur >= 90 ? ' · 1,5 uur' : '') + '</span></span><span class="rechts">les ' + lesnr(g, r.datum) + '</span></button>';
+        }).join('') + '</div>';
+    });
+  }
+  h(html);
+  document.querySelectorAll('[data-g]').forEach(b => b.onclick = () => openBlad(groep(b.dataset.g), b.dataset.d));
+}
+
+/* 5.5 Overzicht voor Jan */
+function naarJan() { S.tab = 'jan'; history.replaceState(null, '', location.pathname + '?jan'); render(); window.scrollTo(0, 0); }
+function uitJan() { S.tab = 'lessen'; history.replaceState(null, '', location.pathname); render(); window.scrollTo(0, 0); }
+
+function renderJan() {
+  if (!S.pin && document.getElementById('pin')) return; // niet opnieuw tekenen terwijl Jan typt
+  if (!S.pin) {
+    h('<h1>Overzicht voor Jan</h1><p class="sub">Geef de pincode in.</p>' +
+      '<input class="pin" id="pin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off">' +
+      '<div class="fout" id="pinfout" hidden></div>' +
+      '<button class="knop ok" id="pinok">Openen</button>' +
+      '<button class="link" onclick="uitJan()">‹ Terug naar de lessen</button>');
+    const inp = document.getElementById('pin');
+    inp.focus();
+    const probeer = async () => {
+      const f = document.getElementById('pinfout');
+      if (!/^\d{4}$/.test(inp.value)) { f.textContent = 'Vier cijfers.'; f.hidden = false; return; }
+      try {
+        const res = await post({ actie: 'pin', pin: inp.value });
+        if (!res.ok) { f.textContent = res.fout || 'Verkeerde pincode.'; f.hidden = false; inp.value = ''; return; }
+        S.pin = inp.value; ssSet('bt2_pin', S.pin); render();
+      } catch (e) { f.textContent = 'Geen verbinding. Probeer opnieuw.'; f.hidden = false; }
+    };
+    document.getElementById('pinok').onclick = probeer;
+    inp.oninput = () => { if (inp.value.length === 4) probeer(); };
+    return;
+  }
+  if (!S.data) return h('<h1>Overzicht voor Jan</h1><p class="sub">' + esc(S.laadFout || 'Laden…') + '</p>');
+
+  const R = regKaart();
+  const v = vandaag();
+  const reeks = S.data.reeks;
+  const alleMaanden = [];
+  for (let m = reeks.start.slice(0, 7); m <= reeks.einde.slice(0, 7) && m <= v.slice(0, 7); ) {
+    alleMaanden.push(m);
+    const [j, mm] = m.split('-').map(Number);
+    m = mm === 12 ? (j + 1) + '-01' : j + '-' + String(mm + 1).padStart(2, '0');
+  }
+  if (S.janMaand == null) S.janMaand = alleMaanden.length ? alleMaanden[alleMaanden.length - 1] : 'alles';
+  const inMaand = iso => S.janMaand === 'alles' || iso.slice(0, 7) === S.janMaand;
+  const mNaam = m => MAANDEN[+m.slice(5) - 1];
+
+  const regs = Object.values(R).filter(r => groep(r.groep_id));
+  const gegeven = regs.filter(r => r.status === 'gegeven' && inMaand(r.datum));
+  const perTrainer = {};
+  gegeven.forEach(r => (perTrainer[r.gegeven_door] = perTrainer[r.gegeven_door] || []).push(r));
+  const trainers = Object.keys(perTrainer).sort((a, b) => perTrainer[b].length - perTrainer[a].length || a.localeCompare(b));
+
+  const open = [];
+  S.data.groepen.forEach(g => g.lessen.forEach(iso => { if (iso < v && !R[sleutel(iso, g.id)]) open.push({ g, iso }); }));
+  open.sort((a, b) => (a.iso + a.g.start + a.g.terrein).localeCompare(b.iso + b.g.start + b.g.terrein));
+  const niet = regs.filter(r => r.status === 'niet_doorgegaan' && inMaand(r.datum)).sort((a, b) => a.datum.localeCompare(b.datum));
+
+  let html = '<h1>Overzicht voor Jan</h1>' +
+    '<div class="beheer">Beheer staat aan: je kan hier elke les invullen of wijzigen.</div>' +
+    '<h2>Periode</h2><div class="chips">' +
+    alleMaanden.map(m => '<button class="chip' + (S.janMaand === m ? ' aan' : '') + '" data-m="' + m + '">' + mNaam(m) + '</button>').join('') +
+    '<button class="chip' + (S.janMaand === 'alles' ? ' aan' : '') + '" data-m="alles">Hele reeks</button></div>';
+
+  html += '<h2>Gegeven lessen per trainer</h2>';
+  if (!trainers.length) html += '<div class="melding">Nog geen gegeven lessen in deze periode.</div>';
+  else html += '<div class="lijst">' + trainers.map(t => {
+    const lijst = perTrainer[t].sort((a, b) => a.datum.localeCompare(b.datum) || groep(a.groep_id).start.localeCompare(groep(b.groep_id).start));
+    const lang = lijst.filter(r => groep(r.groep_id).duur >= 90).length;
+    const uit = S.janOpen[t];
+    return '<button class="r" data-t="' + esc(t) + '"><span>' + (uit ? '▾' : '▸') + '</span><span><b>' + esc(t) + '</b>' +
+      (lang ? '<br><span class="klein">waarvan ' + lang + ' van 1,5 uur</span>' : '') + '</span><span class="rechts">' + lijst.length + ' ' + (lijst.length === 1 ? 'les' : 'lessen') + '</span></button>' +
+      (uit ? '<div class="uitklap">' + lijst.map(r => {
+        const g = groep(r.groep_id);
+        return '<div>' + esc(kort(g, r.datum)) + ' · ' + esc(g.naam) + ' · ' + esc(g.terrein) + (g.duur >= 90 ? ' · <b>1,5 u</b>' : '') + '</div>';
+      }).join('') + '</div>' : '');
+  }).join('') + '</div>';
+
+  html += '<h2>Open lessen (' + open.length + ')</h2>';
+  if (!open.length) html += '<div class="melding">Alles is ingevuld.</div>';
+  else html += '<p class="sub">Oudste eerst. Tik om ze zelf in te vullen.</p><div class="lijst">' + open.map(o =>
+    '<button class="r" data-g="' + o.g.id + '" data-d="' + o.iso + '"><span class="bol rood"></span><span><b>' + esc(kort(o.g, o.iso)) + '</b> · ' + esc(o.g.naam) +
+    '<br><span class="klein">' + esc(o.g.terrein) + ' · ' + esc(trainersTekst(o.g)) + '</span></span></button>').join('') + '</div>';
+
+  html += '<h2>Niet doorgegaan (' + niet.length + ')</h2>';
+  if (!niet.length) html += '<div class="melding">Geen in deze periode.</div>';
+  else html += '<div class="lijst">' + niet.map(r => {
+    const g = groep(r.groep_id);
+    return '<button class="r" data-g="' + g.id + '" data-d="' + r.datum + '"><span class="bol grijs"></span><span><b>' + esc(kort(g, r.datum)) + '</b> · ' + esc(g.naam) + ' · ' + esc(g.terrein) +
+      '<br><span class="klein">' + esc(r.reden) + (r.opmerking ? ' · ' + esc(r.opmerking) : '') + '</span></span></button>';
+  }).join('') + '</div>';
+
+  const vanStd = S.janMaand === 'alles' ? reeks.start : S.janMaand + '-01';
+  const totStd = S.janMaand === 'alles' ? reeks.einde : plus(plus(S.janMaand + '-01', 32).slice(0, 7) + '-01', -1);
+  html += '<h2>Download</h2><div class="rij2">' +
+    '<label class="veld" style="margin:0">Van<input type="date" id="van" value="' + vanStd + '"></label>' +
+    '<label class="veld" style="margin:0">Tot en met<input type="date" id="tot" value="' + totStd + '"></label></div>' +
+    '<button class="knop ok" id="csv">Download als Excel (CSV)</button>' +
+    '<button class="knop klein" id="ververs" style="text-align:center">Vernieuwen</button>' +
+    '<button class="link" id="afmelden">Sluiten en pincode vergeten</button>' +
+    '<button class="link" onclick="uitJan()" style="margin-top:0">‹ Terug naar de lessen</button>';
+  h(html);
+
+  document.querySelectorAll('[data-m]').forEach(b => b.onclick = () => { S.janMaand = b.dataset.m; render(); });
+  document.querySelectorAll('[data-t]').forEach(b => b.onclick = () => { S.janOpen[b.dataset.t] = !S.janOpen[b.dataset.t]; render(); });
+  document.querySelectorAll('[data-g]').forEach(b => b.onclick = () => openBlad(groep(b.dataset.g), b.dataset.d));
+  document.getElementById('csv').onclick = () => downloadCsv(document.getElementById('van').value, document.getElementById('tot').value);
+  document.getElementById('ververs').onclick = () => { toast('Vernieuwen…'); haalData(); };
+  document.getElementById('afmelden').onclick = () => { S.pin = null; ssSet('bt2_pin', null); uitJan(); };
+}
+
+function downloadCsv(van, tot) {
+  if (!van || !tot || van > tot) return toast('Kies een geldige periode.', true);
+  const R = regKaart();
+  const v = vandaag();
+  const rijen = [['datum', 'dag', 'start', 'einde', 'duur_min', 'terrein', 'groep', 'groep_id', 'lesnummer', 'standaardtrainer', 'status', 'gegeven_door', 'reden', 'opmerking', 'ingevuld_door']];
+  const lessen = [];
+  S.data.groepen.forEach(g => g.lessen.forEach(iso => { if (iso >= van && iso <= tot) lessen.push({ g, iso }); }));
+  lessen.sort((a, b) => (a.iso + a.g.start + a.g.terrein).localeCompare(b.iso + b.g.start + b.g.terrein));
+  lessen.forEach(({ g, iso }) => {
+    const r = R[sleutel(iso, g.id)] || {};
+    const st = r.status === 'gegeven' ? 'gegeven' : r.status === 'niet_doorgegaan' ? 'niet doorgegaan' : iso < v ? 'open' : 'nog niet gegeven';
+    const p = iso.split('-');
+    rijen.push([p[2] + '/' + p[1] + '/' + p[0], DAGEN[wd(iso)], g.start, g.einde, g.duur, g.terrein, g.naam, g.id, lesnr(g, iso),
+      g.trainers.join(' en '), st, r.gegeven_door || '', r.reden || '', r.opmerking || '', r.ingevuld_door || '']);
+  });
+  const csv = '﻿' + rijen.map(r => r.map(c => {
+    const s = String(c);
+    return /[";\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }).join(';')).join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = 'bounce-lessen_' + van + '_' + tot + '.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+/* ============================================================
+   Start
+   ============================================================ */
+document.getElementById('wissel').onclick = () => { S.ik = null; lsSet('bt2_ik', null); render(); window.scrollTo(0, 0); };
+document.querySelectorAll('nav.onder button').forEach(b => b.onclick = () => { S.tab = b.dataset.tab; render(); window.scrollTo(0, 0); });
+window.addEventListener('online', () => { verstuur(); haalData(); });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { verstuur(); haalData(); } });
+setInterval(() => { if (S.wachtrij.length) verstuur(); }, 20000);
+if (new URLSearchParams(location.search).has('jan')) S.tab = 'jan';
+render();
+haalData().then(verstuur);
+</script>
+</body>
+</html>
