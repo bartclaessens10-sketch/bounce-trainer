@@ -21,7 +21,7 @@ const OPNAMES = [
   ['6-ging-niet-door', 'Tom', 'niet', null],
   ['7-mijn-lessen', 'Tom', 'mijn', null],
   ['8-overzicht-jan', 'Jan', 'start', "localStorage.removeItem('bt2_wachtrij');S.pin='1234';S.tab='jan';render();"],
-  ['9-overzicht-jan-open', 'Jan', 'start', "S.pin='1234';S.tab='jan';render();[...document.querySelectorAll('h2')].find(x=>x.textContent.startsWith('Open')).scrollIntoView();window.scrollBy(0,-80);"]
+  ['9-overzicht-jan-tellingen', 'Jan', 'start', "S.pin='1234';S.tab='jan';render();[...document.querySelectorAll('h2')].find(x=>x.textContent.startsWith('Gegeven')).scrollIntoView();window.scrollBy(0,-80);"]
 ];
 
 (async () => {
