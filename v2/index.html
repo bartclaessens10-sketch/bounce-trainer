@@ -277,8 +277,10 @@ function lesnr(g, iso) { return g.lessen.indexOf(iso) + 1; }
 async function haalData() {
   if (!API) { S.laadFout = 'De app is nog niet gekoppeld aan de Sheet (API_URL ontbreekt).'; render(); return; }
   try {
-    const res = await fetch(API + '?actie=data', { cache: 'no-store' });
-    const j = await res.json();
+    const j = await metHerkansing(async () => {
+      const res = await fetch(API + '?actie=data', { cache: 'no-store' });
+      return JSON.parse(await res.text());
+    });
     if (!j.ok) throw new Error(j.fout || 'Fout bij het laden');
     S.data = j; S.laadFout = null;
     lsSet('bt2_data', j);
@@ -288,10 +290,23 @@ async function haalData() {
   render();
 }
 
+// Google geeft soms kortstondig een foutpagina ("Pagina niet gevonden") in plaats van het antwoord.
+// Dan tot drie keer proberen. Veilig voor registraties: de server herkent dezelfde tik aan verzoek_id.
+async function metHerkansing(fn) {
+  for (let poging = 1; ; poging++) {
+    try { return await fn(); } catch (e) {
+      if (poging >= 3) throw e;
+      await new Promise(r => setTimeout(r, 1500 * poging));
+    }
+  }
+}
+
 async function post(body) {
-  const res = await fetch(API, { method: 'POST', body: JSON.stringify(body) }); // text/plain: geen CORS-preflight
-  const tekst = await res.text();
-  try { return JSON.parse(tekst); } catch (e) { throw new Error('geen antwoord van de server'); }
+  return metHerkansing(async () => {
+    const res = await fetch(API, { method: 'POST', body: JSON.stringify(body) }); // text/plain: geen CORS-preflight
+    const tekst = await res.text();
+    try { return JSON.parse(tekst); } catch (e) { throw new Error('geen antwoord van de server'); }
+  });
 }
 
 let bezig = false;
