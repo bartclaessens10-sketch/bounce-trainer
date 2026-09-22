@@ -265,6 +265,7 @@ function regKaart() {
   return k;
 }
 function groep(id) { return S.data.groepen.find(g => g.id === id); }
+function actieveGroepen() { return S.data.groepen.filter(g => g.actief !== false); }
 function status(g, iso, R) {
   const r = R[sleutel(iso, g.id)];
   if (r) return r.status === 'gegeven' ? 'groen' : 'grijs';
@@ -415,7 +416,7 @@ function renderWie() {
 function openLijsten(R) {
   const v = vandaag();
   const mijn = [], andere = [];
-  S.data.groepen.forEach(g => g.lessen.forEach(iso => {
+  actieveGroepen().forEach(g => g.lessen.forEach(iso => {
     if (iso >= v || R[sleutel(iso, g.id)]) return;
     const item = { g, iso };
     if (g.trainers.indexOf(S.ik) >= 0) mijn.push(item);
@@ -460,7 +461,7 @@ function renderStart() {
     '</b><button class="pijltje" id="volgende" aria-label="Volgende week">›</button></div><div class="dagen">';
   for (let i = 0; i < 6; i++) {
     const d = plus(ma, i);
-    const lessen = S.data.groepen.filter(g => g.lessen.indexOf(d) >= 0);
+    const lessen = actieveGroepen().filter(g => g.lessen.indexOf(d) >= 0);
     const rood = lessen.some(g => status(g, d, R) === 'rood');
     html += '<button class="dag' + (d === S.dag ? ' gekozen' : '') + (d === v ? ' vandaag' : '') + (lessen.length ? '' : ' leeg') +
       '" data-dag="' + d + '"><span class="d">' + DAGKORT[wd(d)] + '</span><span class="n">' + dm(d) + '</span>' + (rood ? '<span class="stip"></span>' : '') + '</button>';
@@ -470,10 +471,10 @@ function renderStart() {
   // 3. groepen van de gekozen dag
   const dagNaam = DAGEN[wd(S.dag)];
   html += '<h2>' + dagNaam.charAt(0).toUpperCase() + dagNaam.slice(1) + ' ' + dm(S.dag) + (S.dag === v ? ' · vandaag' : '') + '</h2>';
-  const vanDag = S.data.groepen.filter(g => g.lessen.indexOf(S.dag) >= 0)
+  const vanDag = actieveGroepen().filter(g => g.lessen.indexOf(S.dag) >= 0)
     .sort((a, b) => (a.start + a.terrein).localeCompare(b.start + b.terrein));
   if (!vanDag.length) {
-    const heeftGroepen = S.data.groepen.some(g => g.dag === DAGKORT[wd(S.dag)]);
+    const heeftGroepen = actieveGroepen().some(g => g.dag === DAGKORT[wd(S.dag)]);
     let msg = 'Op deze dag zijn er geen lessen.';
     if (S.dag < reeks.start || S.dag > reeks.einde) msg = 'Buiten de lessenreeks (' + dm(reeks.start) + ' tot ' + dm(reeks.einde) + ').';
     else if (heeftGroepen) msg = 'Geen les deze dag: vakantie of geen lesweek.';
@@ -674,7 +675,7 @@ function renderJan() {
   const trainers = Object.keys(perTrainer).sort((a, b) => perTrainer[b].length - perTrainer[a].length || a.localeCompare(b));
 
   const open = [];
-  S.data.groepen.forEach(g => g.lessen.forEach(iso => { if (iso < v && !R[sleutel(iso, g.id)]) open.push({ g, iso }); }));
+  actieveGroepen().forEach(g => g.lessen.forEach(iso => { if (iso < v && !R[sleutel(iso, g.id)]) open.push({ g, iso }); }));
   open.sort((a, b) => (a.iso + a.g.start + a.g.terrein).localeCompare(b.iso + b.g.start + b.g.terrein));
   const niet = regs.filter(r => r.status === 'niet_doorgegaan' && inMaand(r.datum)).sort((a, b) => a.datum.localeCompare(b.datum));
 
@@ -737,7 +738,7 @@ function downloadCsv(van, tot) {
   const v = vandaag();
   const rijen = [['datum', 'dag', 'start', 'einde', 'duur_min', 'terrein', 'groep', 'groep_id', 'lesnummer', 'standaardtrainer', 'status', 'gegeven_door', 'reden', 'opmerking', 'ingevuld_door']];
   const lessen = [];
-  S.data.groepen.forEach(g => g.lessen.forEach(iso => { if (iso >= van && iso <= tot) lessen.push({ g, iso }); }));
+  S.data.groepen.forEach(g => g.lessen.forEach(iso => { if (iso >= van && iso <= tot && (g.actief !== false || R[sleutel(iso, g.id)])) lessen.push({ g, iso }); }));
   lessen.sort((a, b) => (a.iso + a.g.start + a.g.terrein).localeCompare(b.iso + b.g.start + b.g.terrein));
   lessen.forEach(({ g, iso }) => {
     const r = R[sleutel(iso, g.id)] || {};

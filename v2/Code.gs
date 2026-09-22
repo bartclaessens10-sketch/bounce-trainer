@@ -81,7 +81,8 @@ function json_(o) {
 function leesAlles_() {
   const inst = leesInstellingen_();
   const vandaag = vandaagIso_(inst);
-  const groepen = leesGroepen_().filter(function (g) { return g.actief; });
+  // Ook stopgezette groepen (actief = nee): hun gegeven lessen blijven meetellen in de overzichten.
+  const groepen = leesGroepen_();
   const kaart = lesdagKaart_();
   return {
     vandaag: vandaag,
@@ -92,7 +93,7 @@ function leesAlles_() {
     groepen: groepen.map(function (g) {
       return {
         id: g.id, dag: g.dag, start: g.start, einde: g.einde, duur: g.duur,
-        terrein: g.terrein, naam: g.naam, trainers: g.trainers,
+        terrein: g.terrein, naam: g.naam, trainers: g.trainers, actief: g.actief,
         lessen: lessenVan_(g, inst, kaart)
       };
     }),

@@ -122,6 +122,17 @@ ok('geen seintjes voor de reeks begint', () => {
   ctx.maandagMail();
   assert.strictEqual(mails.length, 0);
 });
+ok('stopgezette groep: geschiedenis blijft, nieuwe registraties niet', () => {
+  zetInstelling('testdatum', '2026-10-15');
+  ss.getSheetByName('Groepen').d.forEach(r => { if (r[0] === 'DI-1800-T1') r[8] = 'nee'; });
+  const g = get().groepen.find(x => x.id === 'DI-1800-T1');
+  assert.strictEqual(g.actief, false);
+  assert.ok(get().registraties.some(r => r.groep_id === 'DI-1800-T1'));
+  assert.ok(!post({ actie: 'registreer', verzoek_id: 'c1', datum: '2026-10-06', groep_id: 'DI-1800-T1', status: 'gegeven', gegeven_door: 'Jebbe', ingevuld_door: 'Jebbe' }).ok);
+  const jebbe = ctx.bouwTrainerMails_('2026-10-22').find(m => m.naam === 'Jebbe');
+  assert.ok(jebbe.tekst.includes('Vr 16/10 16:00'));
+  assert.ok(!jebbe.tekst.includes('Di 20/10 18:00')); // geen open lessen meer voor een stopgezette groep
+});
 ok('setup overschrijft bestaande gegevens niet', () => {
   const voor = ss.getSheetByName('Registraties').getLastRow();
   ctx.setup();
