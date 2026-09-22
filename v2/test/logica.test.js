@@ -146,7 +146,13 @@ ok('stopgezette groep: geschiedenis blijft, nieuwe registraties niet', () => {
 ok('formules in het Overzicht met ; (Belgische taalinstelling)', () => {
   const f = ss.getSheetByName('Overzicht').d.flat().filter(x => typeof x === 'string' && x.startsWith('='));
   assert.ok(f.length > 100);
-  f.forEach(x => assert.ok(!x.includes(','), x));
+  f.filter(x => !x.includes('QUERY')).forEach(x => assert.ok(!x.includes(','), x));
+  const q = f.filter(x => x.includes('QUERY'));
+  assert.strictEqual(q.length, 2);
+  q.forEach(x => {
+    assert.ok(x.startsWith('=IFERROR(QUERY(Registraties!A2:K;"select '), x);
+    assert.strictEqual(x.split('(').length, x.split(')').length, 'haakjes: ' + x);
+  });
   assert.ok(f.find(x => x.includes('COUNTIFS')).includes('COUNTIFS(Registraties!$E:$E;$A5;'));
 });
 ok('setup overschrijft bestaande gegevens niet', () => {

@@ -708,8 +708,29 @@ function bouwOverzicht() {
   }
   sh.getRange(rij + 1, 1).setValue('Aantal lessen');
   sh.getRange(rij + 1, 2, 1, n).setFormulas([f.map(lok)]);
+
+  // Detail rechts van de tellingen: elke gegeven les per trainer, en elke les die niet doorging.
+  // De querytekst bevat komma's die geen scheidingsteken zijn, dus hier niet via lok().
+  const kolG = n + 4;
+  const kolN = n + 10;
+  sh.getRange(3, kolG).setValue('Detail: gegeven lessen, per trainer').setFontWeight('bold');
+  sh.getRange(4, kolG).setFormula('=IFERROR(QUERY(' + R + 'A2:K' + sep +
+    '"select E, B, C, J where D = \'gegeven\' and I = \'ja\' order by E, B label E \'Trainer\', B \'Datum\', C \'Groep\', J \'Minuten\'"' +
+    sep + '0)' + sep + '"Nog geen gegeven lessen")');
+  sh.getRange(5, kolG + 1, 1000, 1).setNumberFormat('dd/mm/yyyy');
+  sh.getRange(3, kolN).setValue('Detail: niet doorgegaan (voor inhaallessen)').setFontWeight('bold');
+  sh.getRange(4, kolN).setFormula('=IFERROR(QUERY(' + R + 'A2:K' + sep +
+    '"select B, C, F, G where D = \'niet_doorgegaan\' and I = \'ja\' order by B, C label B \'Datum\', C \'Groep\', F \'Reden\', G \'Opmerking\'"' +
+    sep + '0)' + sep + '"Geen")');
+  sh.getRange(5, kolN, 1000, 1).setNumberFormat('dd/mm/yyyy');
+  sh.getRange(4, kolG, 1, 4).setFontWeight('bold').setBackground('#FFDD00');
+  sh.getRange(4, kolN, 1, 4).setFontWeight('bold').setBackground('#FFDD00');
+
   sh.setColumnWidth(1, 160);
   sh.setFrozenColumns(1);
+  // Overzicht als eerste tabblad: dat is wat Jan moet zien als hij de Sheet opent.
+  ss.setActiveSheet(sh);
+  ss.moveActiveSheet(1);
 }
 
 function kolom_(n) {

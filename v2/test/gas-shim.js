@@ -29,6 +29,7 @@ function maakOmgeving() {
     }
     setValue(x) { this.sh.zet(this.r, this.c, x); return this; }
     setFormulas(v) { return this.setValues(v); }
+    setFormula(f) { return this.setValue(f); }
     setNumberFormat() { return this; }
     setFontWeight() { return this; }
     setFontStyle() { return this; }
@@ -65,7 +66,9 @@ function maakOmgeving() {
     deleteSheet: s => sheets.splice(sheets.indexOf(s), 1),
     setSpreadsheetTimeZone: t => { ssTz = t; },
     getSpreadsheetTimeZone: () => ssTz,
-    getSpreadsheetLocale: () => 'nl_BE'
+    getSpreadsheetLocale: () => 'nl_BE',
+    setActiveSheet: sh => sh,
+    moveActiveSheet: () => {}
   };
 
   function formatDate(d, tz, patroon) {
