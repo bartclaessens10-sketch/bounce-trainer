@@ -71,6 +71,9 @@
     background: #fff; border: 0; border-radius: 10px; padding: 11px 12px; margin-top: 6px; min-height: 48px;
   }
   .openles .pijl { margin-left: auto; color: var(--flits); font-weight: 700; }
+  .janopen { background: #fff; border-radius: 12px; padding: 12px; margin-top: 8px; }
+  .janopen .klein { font-size: 13px; color: var(--zacht); }
+  .janopen .knop { margin-top: 8px; }
   .meer { background: none; border: 0; color: var(--flits); font-weight: 700; padding: 10px 0 0; text-decoration: underline; }
 
   /* weekstrook */
@@ -231,7 +234,7 @@ const S = {
   pin: ssGet('bt2_pin'),
   janMaand: null,
   janOpen: {},
-  toonAlleAndere: false,
+  toonAlleJanOpen: false,
   laadFout: null
 };
 
@@ -428,18 +431,14 @@ function renderWie() {
 }
 
 /* 5.2 Startscherm */
-function openLijsten(R) {
+// Trainers zien enkel de open lessen van hun eigen groepen. Alle open lessen staan bij Jan (overzicht).
+function openLessen(R, filter) {
   const v = vandaag();
-  const mijn = [], andere = [];
+  const uit = [];
   actieveGroepen().forEach(g => g.lessen.forEach(iso => {
-    if (iso >= v || R[sleutel(iso, g.id)]) return;
-    const item = { g, iso };
-    if (g.trainers.indexOf(S.ik) >= 0) mijn.push(item);
-    else if (iso >= plus(v, -7)) andere.push(item);
+    if (iso < v && !R[sleutel(iso, g.id)] && (!filter || filter(g))) uit.push({ g, iso });
   }));
-  // recentste eerst: gisteren vergeten is het meest waarschijnlijke geval
-  const sorteer = (a, b) => b.iso.localeCompare(a.iso) || (a.g.start + a.g.terrein).localeCompare(b.g.start + b.g.terrein);
-  return { mijn: mijn.sort(sorteer), andere: andere.sort(sorteer) };
+  return uit;
 }
 
 function renderStart() {
@@ -450,22 +449,16 @@ function renderStart() {
   let html = '';
 
   // 1. nog in te vullen
-  const o = openLijsten(R);
-  const totaal = o.mijn.length + o.andere.length;
-  if (totaal) {
+  // recentste eerst: gisteren vergeten is het meest waarschijnlijke geval
+  const mijn = openLessen(R, g => g.trainers.indexOf(S.ik) >= 0)
+    .sort((a, b) => b.iso.localeCompare(a.iso) || (a.g.start + a.g.terrein).localeCompare(b.g.start + b.g.terrein));
+  if (mijn.length) {
     const rij = x => '<button class="openles" data-g="' + x.g.id + '" data-d="' + x.iso + '"><span class="bol rood"></span><span><b>' +
       esc(kort(x.g, x.iso)) + '</b><br>' + esc(x.g.naam) + ' · ' + esc(x.g.terrein) + '</span><span class="pijl">›</span></button>';
-    html += '<section class="open"><h2>Nog in te vullen (' + totaal + ')</h2>';
-    if (o.mijn.length) {
-      const toon = S.toonAlleMijn ? o.mijn : o.mijn.slice(0, 5);
-      html += (o.andere.length ? '<h3>Jouw groepen</h3>' : '') + toon.map(rij).join('');
-      if (o.mijn.length > 5 && !S.toonAlleMijn) html += '<button class="meer" id="meermijn">Toon alle ' + o.mijn.length + '</button>';
-    }
-    if (o.andere.length) {
-      const toon = S.toonAlleAndere ? o.andere : o.andere.slice(0, 3);
-      html += '<h3>Andere groepen, laatste 7 dagen</h3>' + toon.map(rij).join('');
-      if (o.andere.length > 3 && !S.toonAlleAndere) html += '<button class="meer" id="meer">Toon alle ' + o.andere.length + '</button>';
-    }
+    html += '<section class="open"><h2>Nog in te vullen (' + mijn.length + ')</h2>';
+    const toon = S.toonAlleMijn ? mijn : mijn.slice(0, 5);
+    html += toon.map(rij).join('');
+    if (mijn.length > 5 && !S.toonAlleMijn) html += '<button class="meer" id="meermijn">Toon alle ' + mijn.length + '</button>';
     html += '</section>';
   }
 
@@ -512,8 +505,6 @@ function renderStart() {
   document.querySelectorAll('[data-dag]').forEach(b => b.onclick = () => { S.dag = b.dataset.dag; render(); });
   document.getElementById('vorige').onclick = () => { S.dag = plus(S.dag, -7); render(); };
   document.getElementById('volgende').onclick = () => { S.dag = plus(S.dag, 7); render(); };
-  const meer = document.getElementById('meer');
-  if (meer) meer.onclick = () => { S.toonAlleAndere = true; render(); };
   const meerMijn = document.getElementById('meermijn');
   if (meerMijn) meerMijn.onclick = () => { S.toonAlleMijn = true; render(); };
 }
@@ -689,13 +680,31 @@ function renderJan() {
   gegeven.forEach(r => (perTrainer[r.gegeven_door] = perTrainer[r.gegeven_door] || []).push(r));
   const trainers = Object.keys(perTrainer).sort((a, b) => perTrainer[b].length - perTrainer[a].length || a.localeCompare(b));
 
-  const open = [];
-  actieveGroepen().forEach(g => g.lessen.forEach(iso => { if (iso < v && !R[sleutel(iso, g.id)]) open.push({ g, iso }); }));
-  open.sort((a, b) => (a.iso + a.g.start + a.g.terrein).localeCompare(b.iso + b.g.start + b.g.terrein));
+  const open = openLessen(R).sort((a, b) => (a.iso + a.g.start + a.g.terrein).localeCompare(b.iso + b.g.start + b.g.terrein));
   const niet = regs.filter(r => r.status === 'niet_doorgegaan' && inMaand(r.datum)).sort((a, b) => a.datum.localeCompare(b.datum));
 
   let html = '<h1>Overzicht voor Jan</h1>' +
-    '<div class="beheer">Beheer staat aan: je kan hier elke les invullen of wijzigen.</div>' +
+    '<div class="beheer">Beheer staat aan: je kan hier elke les invullen of wijzigen.</div>';
+
+  // Nog in te vullen: oudste eerst, met de vaste trainer als voorstel
+  if (open.length) {
+    const toon = S.toonAlleJanOpen ? open : open.slice(0, 10);
+    html += '<section class="open"><h2>Nog in te vullen (' + open.length + ')</h2>' +
+      '<p class="sub" style="margin:0 0 4px">Oudste eerst. Klopt het voorstel, tik dan op de gele knop.</p>' +
+      toon.map(o => {
+        const voorstel = o.g.trainers.filter(t => S.data.trainers.indexOf(t) >= 0);
+        return '<div class="janopen"><div><b>' + esc(kort(o.g, o.iso)) + '</b> · ' + esc(o.g.naam) + ' · ' + esc(o.g.terrein) +
+          '<br><span class="klein">Normaal: ' + esc(trainersTekst(o.g)) + '</span></div>' +
+          voorstel.map(t => '<button class="knop klein hoofd" data-snel="' + o.g.id + '|' + o.iso + '|' + esc(t) + '">✓ Gegeven door ' + esc(t) + '</button>').join('') +
+          '<button class="knop klein" data-g="' + o.g.id + '" data-d="' + o.iso + '">' + (voorstel.length ? 'Anders…' : 'Invullen…') + '</button></div>';
+      }).join('') +
+      (open.length > 10 && !S.toonAlleJanOpen ? '<button class="meer" id="meerjan">Toon alle ' + open.length + '</button>' : '') +
+      '</section>';
+  } else {
+    html += '<div class="melding" style="margin-top:16px">Alles is ingevuld.</div>';
+  }
+
+  html +=
     '<h2>Periode</h2><div class="chips">' +
     alleMaanden.map(m => '<button class="chip' + (S.janMaand === m ? ' aan' : '') + '" data-m="' + m + '">' + mNaam(m) + '</button>').join('') +
     '<button class="chip' + (S.janMaand === 'alles' ? ' aan' : '') + '" data-m="alles">Hele reeks</button></div>';
@@ -713,12 +722,6 @@ function renderJan() {
         return '<div>' + esc(kort(g, r.datum)) + ' · ' + esc(g.naam) + ' · ' + esc(g.terrein) + (g.duur >= 90 ? ' · <b>1,5 u</b>' : '') + '</div>';
       }).join('') + '</div>' : '');
   }).join('') + '</div>';
-
-  html += '<h2>Open lessen (' + open.length + ')</h2>';
-  if (!open.length) html += '<div class="melding">Alles is ingevuld.</div>';
-  else html += '<p class="sub">Oudste eerst. Tik om ze zelf in te vullen.</p><div class="lijst">' + open.map(o =>
-    '<button class="r" data-g="' + o.g.id + '" data-d="' + o.iso + '"><span class="bol rood"></span><span><b>' + esc(kort(o.g, o.iso)) + '</b> · ' + esc(o.g.naam) +
-    '<br><span class="klein">' + esc(o.g.terrein) + ' · ' + esc(trainersTekst(o.g)) + '</span></span></button>').join('') + '</div>';
 
   html += '<h2>Niet doorgegaan (' + niet.length + ')</h2>';
   if (!niet.length) html += '<div class="melding">Geen in deze periode.</div>';
@@ -742,6 +745,12 @@ function renderJan() {
   document.querySelectorAll('[data-m]').forEach(b => b.onclick = () => { S.janMaand = b.dataset.m; render(); });
   document.querySelectorAll('[data-t]').forEach(b => b.onclick = () => { S.janOpen[b.dataset.t] = !S.janOpen[b.dataset.t]; render(); });
   document.querySelectorAll('[data-g]').forEach(b => b.onclick = () => openBlad(groep(b.dataset.g), b.dataset.d));
+  document.querySelectorAll('[data-snel]').forEach(b => b.onclick = () => {
+    const [gid, iso, naam] = b.dataset.snel.split('|');
+    bewaar(groep(gid), iso, { status: 'gegeven', gegeven_door: naam, opmerking: '' });
+  });
+  const meerJan = document.getElementById('meerjan');
+  if (meerJan) meerJan.onclick = () => { S.toonAlleJanOpen = true; render(); };
   document.getElementById('csv').onclick = () => downloadCsv(document.getElementById('van').value, document.getElementById('tot').value);
   document.getElementById('ververs').onclick = () => { toast('Vernieuwen…'); haalData(); };
   document.getElementById('afmelden').onclick = () => { S.pin = null; ssSet('bt2_pin', null); uitJan(); };
