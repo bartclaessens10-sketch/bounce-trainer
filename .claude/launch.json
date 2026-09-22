@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "bounce-v2-test",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["v2/test/server.js"],
+      "port": 8790
+    }
+  ]
+}
