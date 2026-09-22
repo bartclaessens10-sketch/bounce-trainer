@@ -102,13 +102,23 @@ ok('seintjes: één mail per trainer, alle open lessen samen', () => {
   assert.match(tm.find(m => m.naam === 'Steffi').tekst, /Wit en Blauw/);
   assert.match(tm.find(m => m.naam === 'Mat').tekst, /Wit en Blauw/);
   mails.length = 0;
+  ctx.dagelijksSeintje(); // testdatum staat: testmodus, dus niets versturen
+  assert.strictEqual(mails.length, 0);
+  zetInstelling('testdatum', '');
+  const echteDatum = ctx.vandaagIso_;
+  ctx.vandaagIso_ = () => '2026-10-15'; // echte datum nabootsen
   ctx.dagelijksSeintje();
+  ctx.vandaagIso_ = echteDatum;
+  zetInstelling('testdatum', '2026-10-15');
   assert.deepStrictEqual(mails.map(m => m.to), ['janclaessens@makefun.be']);
 });
 ok('maandagmail aan Jan met bcc', () => {
-  zetInstelling('testdatum', '2026-10-19');
+  zetInstelling('testdatum', '');
+  const echteDatum = ctx.vandaagIso_;
+  ctx.vandaagIso_ = () => '2026-10-19';
   mails.length = 0;
   ctx.maandagMail();
+  ctx.vandaagIso_ = echteDatum;
   assert.strictEqual(mails.length, 1);
   assert.strictEqual(mails[0].to, 'janclaessens@makefun.be');
   assert.strictEqual(mails[0].bcc, 'bart@test');

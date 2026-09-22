@@ -412,6 +412,7 @@ function bouwJanMail_(vandaag) {
 function dagelijksSeintje() {
   const inst = leesInstellingen_();
   const vandaag = vandaagIso_(inst);
+  if (inst.testdatum) return; // testmodus: nooit echte seintjes versturen
   if (inst.reeks_start && vandaag <= inst.reeks_start) return;
   bouwTrainerMails_(vandaag).forEach(function (m) {
     if (!m.mag) return;
@@ -423,6 +424,7 @@ function dagelijksSeintje() {
 function maandagMail() {
   const inst = leesInstellingen_();
   const vandaag = vandaagIso_(inst);
+  if (inst.testdatum) return; // testmodus: nooit echte seintjes versturen
   if (inst.reeks_start && vandaag <= inst.reeks_start) return;
   const m = bouwJanMail_(vandaag);
   if (!m.aan) return;
