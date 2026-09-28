@@ -549,40 +549,43 @@ const TRAINERS = [
 /** Trainers met een andere schrijfwijze: oude naam -> nieuwe naam. */
 const HERNOEM = { 'Thibaut': 'Thibaud', 'Mat': 'Matt' };
 
-/** dag, start, einde, terrein, naam, trainer(s). Eén blokje per trainer die dat uur geeft. */
+/**
+ * dag, start, einde, terrein, naam, trainer. Eén blokje per trainer die dat uur geeft.
+ * De naam van een groep is de naam van één speler uit die groep (afspraak met Jan, 28/9).
+ */
 const GROEPEN = [
-  ['ma', '16:00', '17:30', 'T1 + T2', 'Jeugd', 'Jan'],
-  ['ma', '19:00', '20:00', 'T1', 'Volwassenen', 'Thibaud'],
-  ['ma', '20:00', '21:00', 'T1', 'Volwassenen', 'Thibaud'],
-  ['di', '18:00', '19:00', 'T1', 'Jeugd', 'Jan'],
-  ['di', '20:30', '21:30', 'T1', 'Volwassenen', 'Bekin'],
-  ['di', '21:30', '22:30', 'T1', 'Volwassenen', 'Bekin'],
-  ['wo', '15:00', '16:00', 'T1', 'Wit en Blauw (3-5j)', 'Matt'],
-  ['wo', '15:00', '16:00', 'T1', 'Wit en Blauw (3-5j)', 'Steffi'],
-  ['wo', '15:00', '16:00', 'T2', 'Rood A (6-8j)', 'Tom'],
-  ['wo', '15:00', '16:00', 'T3', 'Rood B (6-8j)', 'Jan'],
-  ['wo', '16:00', '17:00', 'T1', 'Jeugd', 'Matt'],
-  ['wo', '16:00', '17:00', 'T2', 'Jeugd', 'Tom'],
-  ['wo', '17:00', '18:00', 'T1', 'Jeugd', 'Matt'],
-  ['wo', '17:00', '18:00', 'T2', 'Jeugd', 'Tom'],
-  ['wo', '19:00', '20:00', 'T1', 'Dames', 'Amir'],
-  ['wo', '19:00', '20:00', 'T2', 'Volwassenen', 'Jan'],
-  ['wo', '20:00', '21:00', 'T1', 'Volwassenen', 'Jan'],
-  ['wo', '20:00', '21:00', 'T2', 'Dames', 'Amir'],
-  ['wo', '21:00', '22:00', 'T1', 'Heren', 'Amir'],
-  ['do', '18:00', '19:00', 'T1', 'Jeugd', 'Luna'],
-  ['do', '19:00', '20:00', 'T1', 'Jeugd', 'Luna'],
-  ['do', '20:00', '21:00', 'T1', 'Dames', 'Luna'],
-  ['vr', '16:00', '17:00', 'T1', 'Jeugd', 'Matt'],
-  ['vr', '16:00', '17:00', 'T2', 'Jeugd', 'Jebbe'],
-  ['vr', '17:00', '18:00', 'T1', 'Jeugd', 'Jebbe'],
-  ['vr', '18:00', '19:00', 'T1', 'Jeugd', 'Jebbe'],
-  ['za', '10:00', '11:00', 'T2', 'Wit en Blauw', 'Matt'],
-  ['za', '10:00', '11:00', 'T3', 'Rood A', 'Mathieu'],
-  ['za', '11:00', '12:00', 'T2', 'Volwassene (prive)', 'Mathieu'],
-  ['za', '11:00', '12:00', 'T3', 'Rood B', 'Matt'],
-  ['zo', '11:00', '12:00', 'T1', 'Jeugd', 'Bekin'],
-  ['zo', '12:00', '13:00', 'T1', 'Jeugd', 'Bekin']
+  ['ma', '16:00', '17:30', 'T1 + T2', 'Staf Kusé', 'Jan'],
+  ['ma', '19:00', '20:00', 'T1', 'Els Van Wauwe', 'Thibaud'],
+  ['ma', '20:00', '21:00', 'T1', 'Michiel Van Raemdonck', 'Thibaud'],
+  ['di', '18:00', '19:00', 'T1', 'Warre Van Havere', 'Jan'],
+  ['di', '20:30', '21:30', 'T1', 'Steffie', 'Bekin'],
+  ['di', '21:30', '22:30', 'T1', 'Karel Buyse', 'Bekin'],
+  ['wo', '15:00', '16:00', 'T1', 'Anna Uyttersprot', 'Matt'],
+  ['wo', '15:00', '16:00', 'T1', 'Anna Uyttersprot', 'Steffi'],
+  ['wo', '15:00', '16:00', 'T2', 'Antoine Claessens', 'Tom'],
+  ['wo', '15:00', '16:00', 'T3', 'Elin Van Haegenbergh', 'Jan'],
+  ['wo', '16:00', '17:00', 'T1', 'Lotte Van Hoyweghen', 'Matt'],
+  ['wo', '16:00', '17:00', 'T2', 'Vincent Goderis', 'Tom'],
+  ['wo', '17:00', '18:00', 'T1', 'Babs Brys', 'Matt'],
+  ['wo', '17:00', '18:00', 'T2', 'Tim Luyckx', 'Tom'],
+  ['wo', '19:00', '20:00', 'T1', 'Laure Vlamynck', 'Amir'],
+  ['wo', '19:00', '20:00', 'T2', 'Kristel Poels', 'Jan'],
+  ['wo', '20:00', '21:00', 'T1', 'Ken Goderis', 'Jan'],
+  ['wo', '20:00', '21:00', 'T2', 'Cindy Gronitz', 'Amir'],
+  ['wo', '21:00', '22:00', 'T1', 'Thomas Cools', 'Amir'],
+  ['do', '18:00', '19:00', 'T1', 'Celeste Martin', 'Luna'],
+  ['do', '19:00', '20:00', 'T1', 'Jaiden Smolders', 'Luna'],
+  ['do', '20:00', '21:00', 'T1', 'Barbara Van Cleemput', 'Luna'],
+  ['vr', '16:00', '17:00', 'T1', 'Louis Luyckx', 'Matt'],
+  ['vr', '16:00', '17:00', 'T2', 'Louis Luyckx', 'Jebbe'],
+  ['vr', '17:00', '18:00', 'T1', 'Josse Vanderoost', 'Jebbe'],
+  ['vr', '18:00', '19:00', 'T1', 'Dries Buytaert', 'Jebbe'],
+  ['za', '10:00', '11:00', 'T2', 'Benjamin Manso', 'Matt'],
+  ['za', '10:00', '11:00', 'T3', 'Laura Rennen', 'Mathieu'],
+  ['za', '11:00', '12:00', 'T2', 'Gwen Van Nuffelen', 'Mathieu'],
+  ['za', '11:00', '12:00', 'T3', 'Julian Smolders', 'Matt'],
+  ['zo', '11:00', '12:00', 'T1', 'Bent Van Eynde', 'Bekin'],
+  ['zo', '12:00', '13:00', 'T1', 'Gust De Keersmaeker', 'Bekin']
 ];
 
 /**

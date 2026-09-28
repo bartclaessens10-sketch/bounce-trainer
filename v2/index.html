@@ -147,6 +147,7 @@
   .knop small { display: block; font-weight: 400; font-size: 13px; color: var(--zacht); }
   .knop.hoofd { background: var(--zon); }
   .knop:disabled { opacity: .4; cursor: not-allowed; }
+  .kaart.wijst { box-shadow: 0 0 0 3px var(--zon); }
   .knop.klein { min-height: 48px; padding: 12px 14px; font-size: 16px; margin-top: 8px; }
   .knop.ok { background: var(--inkt); color: var(--papier); text-align: center; }
   .terug { background: none; border: 0; padding: 8px 0; font-weight: 700; text-decoration: underline; }
@@ -230,6 +231,9 @@ const S = {
   ik: lsGet('bt2_ik', null),
   wachtrij: lsGet('bt2_wachtrij', []),
   tab: 'lessen',
+  scherm: 'dagen',
+  dagKort: null,
+  groepId: null,
   dag: null,
   pin: ssGet('bt2_pin'),
   janMaand: null,
@@ -426,7 +430,7 @@ function renderWie() {
     '<div class="namen">' + S.data.trainers.map(n => '<button class="naam" data-naam="' + esc(n) + '">' + esc(n) + '</button>').join('') + '</div>' +
     '<button class="link" onclick="naarJan()">Overzicht voor Jan</button>');
   document.querySelectorAll('.naam').forEach(b => b.onclick = () => {
-    S.ik = b.dataset.naam; lsSet('bt2_ik', S.ik); S.tab = 'lessen'; S.dag = null; render(); window.scrollTo(0, 0);
+    S.ik = b.dataset.naam; lsSet('bt2_ik', S.ik); S.tab = 'lessen'; S.scherm = 'dagen'; render(); window.scrollTo(0, 0);
   });
 }
 
@@ -442,14 +446,17 @@ function openLessen(R, filter) {
 }
 
 function renderStart() {
+  if (S.scherm === 'lessen' && groep(S.groepId)) return renderLessen();
+  if (S.scherm === 'groepen' && S.dagKort) return renderGroepen();
+  renderDagen();
+}
+
+/* Stap 1: de dagen */
+function renderDagen() {
   const R = regKaart();
-  const v = vandaag();
-  if (!S.dag) S.dag = wd(v) === 0 ? plus(v, -1) : v;
-  const ma = maandag(S.dag);
   let html = '';
 
-  // 1. nog in te vullen
-  // recentste eerst: gisteren vergeten is het meest waarschijnlijke geval
+  // nog in te vullen: enkel de eigen groepen, recentste eerst
   const mijn = openLessen(R, g => g.trainers.indexOf(S.ik) >= 0)
     .sort((a, b) => b.iso.localeCompare(a.iso) || (a.g.start + a.g.terrein).localeCompare(b.g.start + b.g.terrein));
   if (mijn.length) {
@@ -462,51 +469,77 @@ function renderStart() {
     html += '</section>';
   }
 
-  // 2. weekstrook
-  const reeks = S.data.reeks;
-  const titelWeek = 'Week van ' + dm(ma) + ' tot ' + dm(plus(ma, 5));
-  html += '<section class="week"><div class="weekkop"><button class="pijltje" id="vorige" aria-label="Vorige week">‹</button><b>' + titelWeek +
-    '</b><button class="pijltje" id="volgende" aria-label="Volgende week">›</button></div><div class="dagen">';
-  for (let i = 0; i < 6; i++) {
-    const d = plus(ma, i);
-    const lessen = actieveGroepen().filter(g => g.lessen.indexOf(d) >= 0);
-    const rood = lessen.some(g => status(g, d, R) === 'rood');
-    html += '<button class="dag' + (d === S.dag ? ' gekozen' : '') + (d === v ? ' vandaag' : '') + (lessen.length ? '' : ' leeg') +
-      '" data-dag="' + d + '"><span class="d">' + DAGKORT[wd(d)] + '</span><span class="n">' + dm(d) + '</span>' + (rood ? '<span class="stip"></span>' : '') + '</button>';
-  }
-  html += '</div></section>';
-
-  // 3. groepen van de gekozen dag
-  const dagNaam = DAGEN[wd(S.dag)];
-  html += '<h2>' + dagNaam.charAt(0).toUpperCase() + dagNaam.slice(1) + ' ' + dm(S.dag) + (S.dag === v ? ' · vandaag' : '') + '</h2>';
-  const vanDag = actieveGroepen().filter(g => g.lessen.indexOf(S.dag) >= 0)
-    .sort((a, b) => (a.start + a.terrein).localeCompare(b.start + b.terrein));
-  if (!vanDag.length) {
-    const heeftGroepen = actieveGroepen().some(g => g.dag === DAGKORT[wd(S.dag)]);
-    let msg = 'Op deze dag zijn er geen lessen.';
-    if (S.dag < reeks.start || S.dag > reeks.einde) msg = 'Buiten de lessenreeks (' + dm(reeks.start) + ' tot ' + dm(reeks.einde) + ').';
-    else if (heeftGroepen) msg = 'Geen les deze dag: vakantie of geen lesweek.';
-    html += '<div class="melding">' + msg + '</div>';
-  }
-  vanDag.forEach(g => {
-    const st = status(g, S.dag, R);
-    const r = R[sleutel(S.dag, g.id)];
-    html += '<button class="kaart ' + st + '" data-g="' + g.id + '" data-d="' + S.dag + '">' +
-      '<div class="rij1"><span>' + g.start + '-' + g.einde + ' · ' + esc(g.terrein) + '</span><span>les ' + lesnr(g, S.dag) + '/' + g.lessen.length + '</span></div>' +
-      '<div class="titel">' + esc(g.naam) + '</div>' +
-      '<div class="klein" style="font-size:14px;color:var(--zacht)">' + esc(trainersTekst(g)) + '</div>' +
-      '<div class="st"><span class="bol"></span>' + statusTekst(st, r) + (r && r.wacht ? '<span class="wacht">wordt verstuurd…</span>' : '') + '</div></button>';
+  html += '<h1>Welke dag?</h1><p class="sub">Kies de dag van je les.</p>';
+  const vandaagKort = DAGKORT[wd(vandaag())];
+  ['ma', 'di', 'wo', 'do', 'vr', 'za', 'zo'].forEach(dk => {
+    const groepen = actieveGroepen().filter(g => g.dag === dk);
+    if (!groepen.length) return;
+    const open = mijn.filter(x => x.g.dag === dk).length;
+    const naam = DAGEN[DAGKORT.indexOf(dk)];
+    html += '<button class="knop' + (dk === vandaagKort ? ' hoofd' : '') + '" data-dk="' + dk + '">' +
+      naam.charAt(0).toUpperCase() + naam.slice(1) + (dk === vandaagKort ? ' · vandaag' : '') +
+      '<small>' + groepen.length + (groepen.length === 1 ? ' groep' : ' groepen') +
+      (open ? ' · ' + open + ' nog in te vullen' : '') + '</small></button>';
   });
-
   html += '<button class="link" onclick="naarJan()">Overzicht voor Jan</button>';
   h(html);
 
-  document.querySelectorAll('[data-g]').forEach(b => b.onclick = () => openBlad(groep(b.dataset.g), b.dataset.d));
-  document.querySelectorAll('[data-dag]').forEach(b => b.onclick = () => { S.dag = b.dataset.dag; render(); });
-  document.getElementById('vorige').onclick = () => { S.dag = plus(S.dag, -7); render(); };
-  document.getElementById('volgende').onclick = () => { S.dag = plus(S.dag, 7); render(); };
+  document.querySelectorAll('[data-dk]').forEach(b => b.onclick = () => {
+    S.dagKort = b.dataset.dk; S.scherm = 'groepen'; render(); window.scrollTo(0, 0);
+  });
+  document.querySelectorAll('[data-g][data-d]').forEach(b => b.onclick = () => openBlad(groep(b.dataset.g), b.dataset.d));
   const meerMijn = document.getElementById('meermijn');
   if (meerMijn) meerMijn.onclick = () => { S.toonAlleMijn = true; render(); };
+}
+
+/* Stap 2: de groepen van die dag */
+function renderGroepen() {
+  const R = regKaart();
+  const v = vandaag();
+  const dk = S.dagKort;
+  const naam = DAGEN[DAGKORT.indexOf(dk)];
+  const groepen = actieveGroepen().filter(g => g.dag === dk)
+    .sort((a, b) => (a.start + a.terrein).localeCompare(b.start + b.terrein));
+
+  let html = '<button class="terug" id="terug">‹ Alle dagen</button>' +
+    '<h1>' + naam.charAt(0).toUpperCase() + naam.slice(1) + '</h1><p class="sub">Kies je groep.</p>';
+  groepen.forEach(g => {
+    const gegeven = g.lessen.filter(iso => (R[sleutel(iso, g.id)] || {}).status === 'gegeven').length;
+    const open = g.lessen.filter(iso => iso < v && !R[sleutel(iso, g.id)]).length;
+    html += '<button class="kaart' + (open ? ' rood' : '') + '" data-groep="' + g.id + '">' +
+      '<div class="rij1"><span>' + g.start + '-' + g.einde + ' · ' + esc(g.terrein) + '</span><span>' + gegeven + '/' + g.lessen.length + ' gegeven</span></div>' +
+      '<div class="titel">' + esc(g.naam) + '</div>' +
+      '<div style="font-size:14px;color:var(--zacht)">' + esc(trainersTekst(g)) + '</div>' +
+      (open ? '<div class="st"><span class="bol rood"></span>' + open + ' nog in te vullen</div>' : '') +
+      '</button>';
+  });
+  h(html);
+  document.getElementById('terug').onclick = () => { S.scherm = 'dagen'; render(); window.scrollTo(0, 0); };
+  document.querySelectorAll('[data-groep]').forEach(b => b.onclick = () => {
+    S.groepId = b.dataset.groep; S.scherm = 'lessen'; render(); window.scrollTo(0, 0);
+  });
+}
+
+/* Stap 3: les 1 tot 20 van die groep */
+function renderLessen() {
+  const R = regKaart();
+  const v = vandaag();
+  const g = groep(S.groepId);
+  const naam = DAGEN[DAGKORT.indexOf(g.dag)];
+  let html = '<button class="terug" id="terug">‹ ' + naam.charAt(0).toUpperCase() + naam.slice(1) + '</button>' +
+    '<h1>' + esc(g.naam) + '</h1><p class="sub">' + g.start + '-' + g.einde + ' · ' + esc(g.terrein) + ' · ' + esc(trainersTekst(g)) + '</p>';
+
+  const eerstOpen = g.lessen.findIndex(iso => iso < v && !R[sleutel(iso, g.id)]);
+  g.lessen.forEach((iso, i) => {
+    const st = status(g, iso, R);
+    const r = R[sleutel(iso, g.id)];
+    html += '<button class="kaart ' + st + (i === eerstOpen ? ' wijst' : '') + '" data-g="' + g.id + '" data-d="' + iso + '">' +
+      '<div class="rij1"><span><b>Les ' + (i + 1) + '</b> van ' + g.lessen.length + '</span><span>' + esc(kort(g, iso).split(' · ')[0]) + '</span></div>' +
+      '<div class="st"><span class="bol"></span>' + statusTekst(st, r) + (r && r.wacht ? '<span class="wacht">wordt verstuurd…</span>' : '') + '</div></button>';
+  });
+  h(html);
+  document.getElementById('terug').onclick = () => { S.scherm = 'groepen'; render(); window.scrollTo(0, 0); };
+  document.querySelectorAll('[data-g][data-d]').forEach(b => b.onclick = () => openBlad(groep(b.dataset.g), b.dataset.d));
 }
 
 /* 5.3 Een les invullen */
@@ -539,7 +572,8 @@ function openBlad(g, iso, stap) {
   if (!stap) {
     body +=
       (S.ik ? '<button class="knop hoofd" id="ikgaf"' + (toekomst ? ' disabled' : '') + '>Ik gaf deze les</button>' : '') +
-      '<button class="knop' + (S.ik ? '' : ' hoofd') + '" id="ander"' + (toekomst ? ' disabled' : '') + '>' + (S.ik ? 'Iemand anders gaf deze les' : 'De les werd gegeven') + '</button>' +
+      // Een trainer vult enkel in eigen naam in. Enkel in beheer (Jan) kan je een andere naam kiezen.
+      (S.pin || !S.ik ? '<button class="knop' + (S.ik ? '' : ' hoofd') + '" id="ander"' + (toekomst ? ' disabled' : '') + '>' + (S.ik ? 'Iemand anders gaf deze les' : 'De les werd gegeven') + '</button>' : '') +
       '<button class="knop" id="niet">De les ging niet door</button>' +
       (toekomst ? '<div class="info">Deze les is nog niet gegeven. Vooraf kan je enkel aanduiden dat ze niet doorgaat.</div>' : '') +
       '<label class="veld">Opmerking (niet verplicht)<input id="opm" maxlength="300" autocomplete="off"></label>' +
@@ -548,7 +582,8 @@ function openBlad(g, iso, stap) {
     const opm = () => document.getElementById('opm').value.trim();
     const ikgaf = document.getElementById('ikgaf');
     if (ikgaf) ikgaf.onclick = () => bewaar(g, iso, { status: 'gegeven', gegeven_door: S.ik, opmerking: opm() });
-    document.getElementById('ander').onclick = () => { S._opm = opm(); openBlad(g, iso, 'ander'); };
+    const ander = document.getElementById('ander');
+    if (ander) ander.onclick = () => { S._opm = opm(); openBlad(g, iso, 'ander'); };
     document.getElementById('niet').onclick = () => { S._opm = opm(); openBlad(g, iso, 'niet'); };
     return;
   }

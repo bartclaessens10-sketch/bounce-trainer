@@ -16,10 +16,10 @@ const post = b => fetch(API, { method: 'POST', body: JSON.stringify(b) }).then(r
   }
   const extra = [
     { datum: '2026-10-14', groep_id: 'WO-1500-T2', status: 'gegeven', gegeven_door: 'Tom', ingevuld_door: 'Tom' },
-    { datum: '2026-10-14', groep_id: 'WO-1400-T2', status: 'gegeven', gegeven_door: 'Jan', opmerking: 'Tom ziek', ingevuld_door: 'Tom' },
+    { datum: '2026-10-14', groep_id: 'WO-1700-T2', status: 'gegeven', gegeven_door: 'Jan', opmerking: 'Tom ziek', ingevuld_door: 'Tom' },
     { datum: '2026-10-14', groep_id: 'WO-1600-T2', status: 'niet_doorgegaan', reden: 'regen of weer', ingevuld_door: 'Tom' },
-    { datum: '2026-10-14', groep_id: 'WO-1400-T1', status: 'gegeven', gegeven_door: 'Steffi', ingevuld_door: 'Steffi' },
-    { datum: '2026-10-14', groep_id: 'WO-1500-T1', status: 'gegeven', gegeven_door: 'Mat', ingevuld_door: 'Mat' }
+    { datum: '2026-10-14', groep_id: 'WO-1600-T1', status: 'gegeven', gegeven_door: 'Matt', ingevuld_door: 'Matt' },
+    { datum: '2026-10-14', groep_id: 'WO-1500-T1', status: 'gegeven', gegeven_door: 'Matt', ingevuld_door: 'Matt' }
   ];
   for (const e of extra) {
     const r = await post(Object.assign({ actie: 'registreer', verzoek_id: 'demo' + n++ }, e));

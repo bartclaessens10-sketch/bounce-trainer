@@ -110,11 +110,11 @@ ok('seintjes: één mail per trainer, alle open lessen samen', () => {
   const jan = tm.find(m => m.naam === 'Jan');
   assert.ok(jan.mag);
   assert.strictEqual(jan.aan, 'janclaessens@makefun.be');
-  assert.match(jan.tekst, /Ma 28\/9 16:00 Jeugd · T1 \+ T2/);
+  assert.match(jan.tekst, /Ma 28\/9 16:00 Staf Kusé · T1 \+ T2/);
   assert.ok(!/Rood B \(6-8j\)/.test(tom.tekst));
   // Steffi en Mat krijgen allebei de duo-groep
-  assert.match(tm.find(m => m.naam === 'Steffi').tekst, /Wit en Blauw/);
-  assert.match(tm.find(m => m.naam === 'Matt').tekst, /Wit en Blauw/);
+  assert.match(tm.find(m => m.naam === 'Steffi').tekst, /Anna Uyttersprot/);
+  assert.match(tm.find(m => m.naam === 'Matt').tekst, /Anna Uyttersprot/);
   mails.length = 0;
   ctx.dagelijksSeintje(); // testdatum staat: testmodus, dus niets versturen
   assert.strictEqual(mails.length, 0);
