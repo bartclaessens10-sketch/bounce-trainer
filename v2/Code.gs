@@ -465,6 +465,7 @@ function onOpen() {
   SpreadsheetApp.getUi().createMenu('Bounce')
     .addItem('Seintjes testen (naar mij)', 'testSeintjes')
     .addItem('Overzicht opnieuw opbouwen', 'bouwOverzicht')
+    .addItem('Planning bijwerken (trainers en groepen)', 'werkPlanningBij')
     .addToUi();
 }
 
