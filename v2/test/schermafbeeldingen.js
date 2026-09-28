@@ -14,10 +14,10 @@ const wacht = ms => new Promise(r => setTimeout(r, ms));
 
 const OPNAMES = [
   ['1-wie-ben-je', 'Tom', 'wie', null],
-  ['2-startscherm', 'Tom', 'start', null],
-  ['3-dag', 'Tom', 'dag', null],
-  ['4-les-invullen', 'Tom', 'blad', null],
-  ['5-iemand-anders', 'Tom', 'ander', null],
+  ['2-welke-dag', 'Tom', 'start', null],
+  ['3-groepen-van-de-dag', 'Tom', 'groepen', null],
+  ['4-lessen-1-tot-20', 'Tom', 'lessen', null],
+  ['5-les-invullen', 'Tom', 'blad', null],
   ['6-ging-niet-door', 'Tom', 'niet', null],
   ['7-mijn-lessen', 'Tom', 'mijn', null],
   ['8-overzicht-jan', 'Jan', 'start', "localStorage.removeItem('bt2_wachtrij');S.pin='1234';S.tab='jan';render();"],

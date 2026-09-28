@@ -53,11 +53,11 @@ http.createServer((req, res) => {
     const shot = url.searchParams.get('shot') || 'start';
     const acties = {
       wie: "S.ik=null;render();",
-      start: "",
-      blad: "S.dag='2026-10-14';render();openBlad(groep('WO-1700-T2'),'2026-10-14');",
-      ander: "S.dag='2026-10-14';render();openBlad(groep('WO-1700-T2'),'2026-10-14','ander');",
-      niet: "S.dag='2026-10-14';render();openBlad(groep('WO-1700-T2'),'2026-10-14','niet');document.querySelector('input[value=\"regen of weer\"]').checked=true;",
-      dag: "S.dag='2026-10-14';render();document.querySelector('.week').scrollIntoView();window.scrollBy(0,-70);",
+      start: '',
+      groepen: "S.dagKort='wo';S.scherm='groepen';render();",
+      lessen: "S.dagKort='wo';S.groepId='WO-1500-T2';S.scherm='lessen';render();",
+      blad: "S.dagKort='wo';S.groepId='WO-1500-T2';S.scherm='lessen';render();openBlad(groep('WO-1500-T2'),'2026-10-07');",
+      niet: "S.dagKort='wo';S.groepId='WO-1500-T2';S.scherm='lessen';render();openBlad(groep('WO-1500-T2'),'2026-10-07','niet');document.querySelector('input[value=\"regen of weer\"]').checked=true;",
       mijn: "S.tab='mijn';render();"
     };
     let html = fs.readFileSync(bestand, 'utf8');
