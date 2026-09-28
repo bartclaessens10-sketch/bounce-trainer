@@ -223,6 +223,8 @@ function huidigeRegistraties_() {
     };
     if (r[10]) verzoeken[String(r[10])] = key;
   });
+  // "gewist" betekent: er staat niets meer ingevuld voor die les.
+  Object.keys(perLes).forEach(function (k) { if (perLes[k].status === 'gewist') delete perLes[k]; });
   const lijst = Object.keys(perLes).map(function (k) { return perLes[k]; });
   return { perLes: perLes, verzoeken: verzoeken, lijst: lijst };
 }
@@ -270,6 +272,8 @@ function registreer_(b) {
       if (!tekst) return { ok: false, fout: 'Schrijf kort waarom de les niet doorging.' };
       reden = 'andere: ' + tekst;
     }
+  } else if (status === 'gewist') {
+    if (!huidig.perLes[key]) return { ok: false, fout: 'Voor deze les staat niets ingevuld.' };
   } else {
     return { ok: false, fout: 'Onbekende status.' };
   }
@@ -296,6 +300,7 @@ function registreer_(b) {
 
   return {
     ok: true,
+    gewist: status === 'gewist',
     registratie: {
       datum: datum, groep_id: gid, status: status, gegeven_door: gegevenDoor, reden: reden,
       opmerking: opmerking, ingevuld_door: beheer ? ingevuldDoor + ' (beheer)' : ingevuldDoor,

@@ -260,6 +260,7 @@ function regKaart() {
   const k = {};
   (S.data ? S.data.registraties : []).forEach(r => { k[sleutel(r.datum, r.groep_id)] = r; });
   S.wachtrij.forEach(w => {
+    if (w.status === 'gewist') { delete k[sleutel(w.datum, w.groep_id)]; return; }
     const vorige = k[sleutel(w.datum, w.groep_id)];
     k[sleutel(w.datum, w.groep_id)] = {
       datum: w.datum, groep_id: w.groep_id, status: w.status,
@@ -334,7 +335,7 @@ async function verstuur(naTik) {
     lsSet('bt2_wachtrij', S.wachtrij);
     if (res.ok) {
       const lijst = S.data.registraties.filter(r => !(r.datum === res.registratie.datum && r.groep_id === res.registratie.groep_id));
-      lijst.push(res.registratie);
+      if (!res.gewist && res.registratie.status !== 'gewist') lijst.push(res.registratie);
       S.data.registraties = lijst;
       lsSet('bt2_data', S.data);
       toast('Opgeslagen ✓');
@@ -577,6 +578,7 @@ function openBlad(g, iso, stap) {
       '<button class="knop" id="niet">De les ging niet door</button>' +
       (toekomst ? '<div class="info">Deze les is nog niet gegeven. Vooraf kan je enkel aanduiden dat ze niet doorgaat.</div>' : '') +
       '<label class="veld">Opmerking (niet verplicht)<input id="opm" maxlength="300" autocomplete="off"></label>' +
+      (r ? '<button class="terug" id="wissen" style="margin-top:14px;color:var(--flits)">Toch niets invullen (wissen)</button><br>' : '') +
       '<button class="terug" onclick="sluitBlad()" style="margin-top:10px">Annuleren</button>';
     toonBlad(body);
     const opm = () => document.getElementById('opm').value.trim();
@@ -584,6 +586,8 @@ function openBlad(g, iso, stap) {
     if (ikgaf) ikgaf.onclick = () => bewaar(g, iso, { status: 'gegeven', gegeven_door: S.ik, opmerking: opm() });
     const ander = document.getElementById('ander');
     if (ander) ander.onclick = () => { S._opm = opm(); openBlad(g, iso, 'ander'); };
+    const wis = document.getElementById('wissen');
+    if (wis) wis.onclick = () => bewaar(g, iso, { status: 'gewist' });
     document.getElementById('niet').onclick = () => { S._opm = opm(); openBlad(g, iso, 'niet'); };
     return;
   }

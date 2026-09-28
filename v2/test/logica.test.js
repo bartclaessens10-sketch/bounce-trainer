@@ -99,6 +99,21 @@ ok('na 7 dagen: trainer niet, Jan met pincode wel', () => {
   assert.ok(r.ok, r.fout);
   assert.strictEqual(r.registratie.ingevuld_door, 'Jan (beheer)');
 });
+ok('een les weer leeg maken (wissen)', () => {
+  const r0 = post({ actie: 'registreer', verzoek_id: 'w1', datum: '2026-10-12', groep_id: 'MA-1900-T1', status: 'gegeven', gegeven_door: 'Thibaud', ingevuld_door: 'Thibaud' });
+  assert.ok(r0.ok, r0.fout);
+  // een andere trainer mag niet wissen
+  assert.ok(!post({ actie: 'registreer', verzoek_id: 'w2', datum: '2026-10-12', groep_id: 'MA-1900-T1', status: 'gewist', ingevuld_door: 'Tom' }).ok);
+  const r = post({ actie: 'registreer', verzoek_id: 'w3', datum: '2026-10-12', groep_id: 'MA-1900-T1', status: 'gewist', ingevuld_door: 'Thibaud' });
+  assert.ok(r.ok, r.fout);
+  assert.ok(r.gewist);
+  // de les staat weer open, maar het spoor blijft in de Sheet
+  assert.ok(!get().registraties.some(x => x.datum === '2026-10-12' && x.groep_id === 'MA-1900-T1'));
+  const rijen = ss.getSheetByName('Registraties').d.filter(x => x[2] === 'MA-1900-T1');
+  assert.deepStrictEqual(rijen.map(x => x[3]), ['gegeven', 'gewist']);
+  // wissen van een lege les kan niet
+  assert.ok(!post({ actie: 'registreer', verzoek_id: 'w4', datum: '2026-10-12', groep_id: 'MA-1900-T1', status: 'gewist', ingevuld_door: 'Thibaud' }).ok);
+});
 ok('pincode', () => {
   assert.ok(post({ actie: 'pin', pin: '1234' }).ok);
   assert.ok(!post({ actie: 'pin', pin: '0000' }).ok);
