@@ -30,6 +30,7 @@ function maakOmgeving() {
     setValue(x) { this.sh.zet(this.r, this.c, x); return this; }
     setFormulas(v) { return this.setValues(v); }
     setFormula(f) { return this.setValue(f); }
+    clearContent() { for (let i = 0; i < this.nr; i++) for (let j = 0; j < this.nc; j++) this.sh.zet(this.r + i, this.c + j, ''); return this; }
     setNumberFormat() { return this; }
     setFontWeight() { return this; }
     setFontStyle() { return this; }

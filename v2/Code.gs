@@ -524,6 +524,128 @@ function jaNee_(v, standaard) {
   return s === 'ja' || s === 'j' || s === 'yes' || s === 'true' || s === 'x' || s === '1';
 }
 
+/* ------------------------------------------------------------------ de planning */
+
+/**
+ * De trainers en de groepen van de winterreeks 2026-2027.
+ * Bron: de planning van Jan (WhatsApp 28/9/2026). Verandert er iets?
+ * Pas het hier aan en draai werkPlanningBij(), of pas het rechtstreeks in de Sheet aan.
+ */
+const TRAINERS = [
+  ['Jan', 'janclaessens@makefun.be'],
+  ['Thibaud', ''],
+  ['Jebbe', ''],
+  ['Bekin', ''],
+  ['Steffi', ''],
+  ['Tom', ''],
+  ['Matt', ''],
+  ['Mathieu', ''],
+  ['Amir', ''],
+  ['Luna', '']
+];
+
+/** Trainers met een andere schrijfwijze: oude naam -> nieuwe naam. */
+const HERNOEM = { 'Thibaut': 'Thibaud', 'Mat': 'Matt' };
+
+/** dag, start, einde, terrein, naam, trainer(s). Eén blokje per trainer die dat uur geeft. */
+const GROEPEN = [
+  ['ma', '16:00', '17:30', 'T1 + T2', 'Jeugd', 'Jan'],
+  ['ma', '19:00', '20:00', 'T1', 'Volwassenen', 'Thibaud'],
+  ['ma', '20:00', '21:00', 'T1', 'Volwassenen', 'Thibaud'],
+  ['di', '18:00', '19:00', 'T1', 'Jeugd', 'Jan'],
+  ['di', '20:30', '21:30', 'T1', 'Volwassenen', 'Bekin'],
+  ['di', '21:30', '22:30', 'T1', 'Volwassenen', 'Bekin'],
+  ['wo', '15:00', '16:00', 'T1', 'Wit en Blauw (3-5j)', 'Matt, Steffi'],
+  ['wo', '15:00', '16:00', 'T2', 'Rood A (6-8j)', 'Tom'],
+  ['wo', '15:00', '16:00', 'T3', 'Rood B (6-8j)', 'Jan'],
+  ['wo', '16:00', '17:00', 'T1', 'Jeugd', 'Matt'],
+  ['wo', '16:00', '17:00', 'T2', 'Jeugd', 'Tom'],
+  ['wo', '17:00', '18:00', 'T1', 'Jeugd', 'Matt'],
+  ['wo', '17:00', '18:00', 'T2', 'Jeugd', 'Tom'],
+  ['wo', '19:00', '20:00', 'T1', 'Dames', 'Amir'],
+  ['wo', '19:00', '20:00', 'T2', 'Volwassenen', 'Jan'],
+  ['wo', '20:00', '21:00', 'T1', 'Volwassenen', 'Jan'],
+  ['wo', '20:00', '21:00', 'T2', 'Dames', 'Amir'],
+  ['wo', '21:00', '22:00', 'T1', 'Heren', 'Amir'],
+  ['do', '18:00', '19:00', 'T1', 'Jeugd', 'Luna'],
+  ['do', '19:00', '20:00', 'T1', 'Jeugd', 'Luna'],
+  ['do', '20:00', '21:00', 'T1', 'Dames', 'Luna'],
+  ['vr', '16:00', '17:00', 'T1', 'Jeugd', 'Matt'],
+  ['vr', '16:00', '17:00', 'T2', 'Jeugd', 'Jebbe'],
+  ['vr', '17:00', '18:00', 'T1', 'Jeugd', 'Jebbe'],
+  ['vr', '18:00', '19:00', 'T1', 'Jeugd', 'Jebbe'],
+  ['za', '10:00', '11:00', 'T2', 'Wit en Blauw', 'Matt'],
+  ['za', '10:00', '11:00', 'T3', 'Rood A', 'Mathieu'],
+  ['za', '11:00', '12:00', 'T2', 'Volwassene (prive)', 'Mathieu'],
+  ['za', '11:00', '12:00', 'T3', 'Rood B', 'Matt'],
+  ['zo', '11:00', '12:00', 'T1', 'Jeugd', 'Bekin'],
+  ['zo', '12:00', '13:00', 'T1', 'Jeugd', 'Bekin']
+];
+
+function groepId_(r) {
+  return r[0].toUpperCase() + '-' + r[1].replace(':', '') + '-' + r[3].replace(/[^A-Za-z0-9]/g, '');
+}
+
+/**
+ * Trainers en groepen in de Sheet gelijkzetten met TRAINERS en GROEPEN hierboven.
+ * Mailadressen, gsm-nummers en de seintjes-instelling blijven behouden (op naam, met HERNOEM).
+ * Groepen of trainers die niet meer in de lijst staan, gaan op actief = nee: hun lessen blijven tellen.
+ * Registraties worden nooit aangeraakt.
+ */
+function werkPlanningBij() {
+  schrijfTrainers_(true);
+  schrijfGroepen_(true);
+  bouwOverzicht();
+  Logger.log('Planning bijgewerkt: ' + TRAINERS.length + ' trainers, ' + GROEPEN.length + ' groepen.');
+}
+
+function schrijfTrainers_(bestaandeBijwerken) {
+  const sh = ss_().getSheetByName(TAB.trainers);
+  if (!sh) {
+    return maakTab_(TAB.trainers, KOP.Trainers, TRAINERS.map(function (t) { return [t[0], t[1], '', 'ja', 'ja']; }), ['@', '@', '@', '@', '@']);
+  }
+  if (!bestaandeBijwerken && sh.getLastRow() > 1) return sh;
+
+  const oud = {};
+  rijen_(TAB.trainers).forEach(function (r) {
+    const naam = String(r[0]).trim();
+    if (naam) oud[HERNOEM[naam] || naam] = r;
+  });
+  const rijen = TRAINERS.map(function (t) {
+    const o = oud[t[0]];
+    return [t[0], (o && String(o[1]).trim()) || t[1], (o && o[2]) || '', 'ja', (o && String(o[4]).trim()) || 'ja'];
+  });
+  Object.keys(oud).forEach(function (naam) {
+    if (!TRAINERS.some(function (t) { return t[0] === naam; })) {
+      rijen.push([naam, oud[naam][1], oud[naam][2], 'nee', oud[naam][4]]);
+    }
+  });
+  const leeg = Math.max(rijen.length, sh.getLastRow() - 1);
+  if (leeg > 0) sh.getRange(2, 1, leeg, KOP.Trainers.length).clearContent();
+  sh.getRange(2, 1, rijen.length, KOP.Trainers.length).setValues(rijen);
+  return sh;
+}
+
+function schrijfGroepen_(bestaandeBijwerken) {
+  const nieuw = GROEPEN.map(function (r) {
+    return [groepId_(r), r[0], r[1], r[2], minuten_(r[2]) - minuten_(r[1]), r[3], r[4], r[5], 'ja'];
+  });
+  const sh = ss_().getSheetByName(TAB.groepen);
+  if (!sh) return maakTab_(TAB.groepen, KOP.Groepen, nieuw, ['@', '@', '@', '@', '0', '@', '@', '@', '@']);
+  if (!bestaandeBijwerken && sh.getLastRow() > 1) return sh;
+
+  const ids = {};
+  nieuw.forEach(function (r) { ids[r[0]] = true; });
+  rijen_(TAB.groepen).forEach(function (r) {
+    const id = String(r[0]).trim();
+    if (id && !ids[id]) nieuw.push([id, r[1], r[2], r[3], r[4], r[5], r[6], r[7], 'nee']);
+  });
+  const leeg = Math.max(nieuw.length, sh.getLastRow() - 1);
+  if (leeg > 0) sh.getRange(2, 1, leeg, KOP.Groepen.length).clearContent();
+  sh.getRange(2, 1, nieuw.length, KOP.Groepen.length).setValues(nieuw);
+  return sh;
+}
+
 /* ------------------------------------------------------------------ setup + startdata */
 
 /**
@@ -537,57 +659,8 @@ function setup() {
     Logger.log('LET OP: de tijdzone van het script is ' + tz_() + '. Zet ze op Europe/Brussels (Projectinstellingen).');
   }
 
-  maakTab_(TAB.trainers, KOP.Trainers, [
-    ['Jan', 'janclaessens@makefun.be', '', 'ja', 'ja'],
-    ['Thibaut', '', '', 'ja', 'ja'],
-    ['Jebbe', '', '', 'ja', 'ja'],
-    ['Bekin', '', '', 'ja', 'ja'],
-    ['Steffi', '', '', 'ja', 'ja'],
-    ['Tom', '', '', 'ja', 'ja'],
-    ['Mat', '', '', 'ja', 'ja'],
-    ['Amir', '', '', 'ja', 'ja'],
-    ['Luna', '', '', 'ja', 'ja']
-  ], ['@', '@', '@', '@', '@']);
-
-  const G = [
-    ['ma', '16:00', '17:30', 'T1', 'Jeugd', 'Jan'],
-    ['ma', '16:00', '17:30', 'T2', 'Jeugd', 'Jan'],
-    ['ma', '19:00', '20:00', 'T1', 'Volwassenen', 'Thibaut'],
-    ['ma', '20:00', '21:00', 'T1', 'Volwassenen', 'Thibaut'],
-    ['di', '17:00', '18:00', 'T1', 'Jeugd', ''],
-    ['di', '18:00', '19:00', 'T1', 'Jeugd', 'Jebbe'],
-    ['di', '20:30', '21:30', 'T1', 'Volwassenen', 'Bekin'],
-    ['di', '21:30', '22:30', 'T1', 'Volwassenen', 'Bekin'],
-    ['wo', '14:00', '15:00', 'T1', 'Jeugd', 'Steffi'],
-    ['wo', '14:00', '15:00', 'T2', 'Jeugd', 'Tom'],
-    ['wo', '15:00', '16:00', 'T1', 'Wit en Blauw (3-5j)', 'Steffi, Mat'],
-    ['wo', '15:00', '16:00', 'T2', 'Rood A (6-8j)', 'Tom'],
-    ['wo', '15:00', '16:00', 'T3', 'Rood B (6-8j)', 'Jan'],
-    ['wo', '16:00', '17:00', 'T1', 'Jeugd', 'Mat'],
-    ['wo', '16:00', '17:00', 'T2', 'Jeugd', 'Tom'],
-    ['wo', '17:00', '18:00', 'T1', 'Jeugd', 'Mat'],
-    ['wo', '17:00', '18:00', 'T2', 'Jeugd', 'Tom'],
-    ['wo', '18:00', '19:00', 'T1', 'Volwassenen', 'Jan'],
-    ['wo', '18:00', '19:00', 'T2', 'Jeugd', 'Tom'],
-    ['wo', '19:00', '20:00', 'T1', 'Dames', 'Amir'],
-    ['wo', '19:00', '20:00', 'T2', 'Volwassenen', 'Jan'],
-    ['wo', '20:00', '21:00', 'T1', 'Volwassenen', 'Jan'],
-    ['wo', '20:00', '21:00', 'T2', 'Dames', 'Amir'],
-    ['wo', '21:00', '22:00', 'T1', 'Heren', 'Amir'],
-    ['do', '19:00', '20:00', 'T1', 'Jeugd / privé', 'Luna'],
-    ['do', '20:00', '21:00', 'T1', 'Dames', 'Luna'],
-    ['vr', '16:00', '17:00', 'T1', 'Jeugd', 'Jebbe'],
-    ['vr', '17:00', '18:00', 'T1', 'Jeugd', 'Jebbe'],
-    ['vr', '18:00', '19:00', 'T1', 'Jeugd', ''],
-    ['za', '10:00', '11:00', 'T2', 'Wit/Blauw (proefles 3/10)', 'Mat'],
-    ['za', '10:00', '11:00', 'T3', 'Rood A', 'Amir'],
-    ['za', '11:00', '12:00', 'T2', 'Volwassene (privé)', 'Amir'],
-    ['za', '11:00', '12:00', 'T3', 'Rood B', '']
-  ];
-  maakTab_(TAB.groepen, KOP.Groepen, G.map(function (r) {
-    const id = r[0].toUpperCase() + '-' + r[1].replace(':', '') + '-' + r[3];
-    return [id, r[0], r[1], r[2], minuten_(r[2]) - minuten_(r[1]), r[3], r[4], r[5], 'ja'];
-  }), ['@', '@', '@', '@', '0', '@', '@', '@', '@']);
+  schrijfTrainers_(false);
+  schrijfGroepen_(false);
 
   // Lesweken: een rij per week (de maandag). Vakanties op "nee".
   const nee = {
@@ -609,7 +682,7 @@ function setup() {
     ['bcc', Session.getEffectiveUser().getEmail(), 'Krijgt de maandagmail in bcc (standaard: wie setup draaide).'],
     ['app_url', 'https://bartclaessens10-sketch.github.io/bounce-trainer/v2/', 'Link in de seintjes.'],
     ['reeks_start', '2026-09-28', 'Eerste lesdag van de reeks (jjjj-mm-dd).'],
-    ['reeks_einde', '2027-03-27', 'Laatste lesdag van de reeks (jjjj-mm-dd).'],
+    ['reeks_einde', '2027-03-28', 'Laatste lesdag van de reeks (jjjj-mm-dd).'],
     ['testdatum', '', 'ALLEEN OM TE TESTEN: doet alsof het vandaag deze datum is. Leeg = echte datum.']
   ], ['@', '@', '@']);
 

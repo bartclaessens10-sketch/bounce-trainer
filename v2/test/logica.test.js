@@ -12,9 +12,17 @@ let n = 0;
 const ok = (naam, fn) => { fn(); n++; console.log('ok  ' + naam); };
 
 const d = get();
-ok('33 groepen, 9 trainers', () => {
-  assert.strictEqual(d.groepen.length, 33);
-  assert.strictEqual(d.trainers.length, 9);
+ok('31 blokjes, 10 trainers (planning Jan 28/9)', () => {
+  assert.strictEqual(d.groepen.length, 31);
+  assert.strictEqual(d.trainers.length, 10);
+  assert.ok(d.trainers.includes('Thibaud') && d.trainers.includes('Mathieu') && d.trainers.includes('Matt'));
+  // zondag hoort er nu bij, woensdag 14u en 18u niet meer
+  assert.ok(d.groepen.some(g => g.dag === 'zo' && g.start === '11:00'));
+  assert.ok(!d.groepen.some(g => g.start === '14:00'));
+  assert.ok(!d.groepen.some(g => g.dag === 'wo' && g.start === '18:00'));
+  // vrijdag 16u is gesplitst: elk zijn eigen blokje
+  const vr = d.groepen.filter(g => g.dag === 'vr' && g.start === '16:00');
+  assert.deepStrictEqual(vr.map(g => g.trainers.join()).sort(), ['Jebbe', 'Matt']);
 });
 ok('20 lesweken per groep, vakanties eruit', () => {
   d.groepen.forEach(g => assert.strictEqual(g.lessen.length, 20, g.id));
@@ -26,11 +34,13 @@ ok('20 lesweken per groep, vakanties eruit', () => {
   assert.strictEqual(wo.lessen[19], '2027-03-24');
   const za = d.groepen.find(g => g.id === 'ZA-1000-T2');
   assert.strictEqual(za.lessen[0], '2026-10-03');
+  const zo = d.groepen.find(g => g.id === 'ZO-1100-T1');
+  assert.strictEqual(zo.lessen[0], '2026-10-04');
 });
-ok('duo-trainer en onbekende trainer', () => {
-  assert.deepStrictEqual(d.groepen.find(g => g.id === 'WO-1500-T1').trainers, ['Steffi', 'Mat']);
-  assert.deepStrictEqual(d.groepen.find(g => g.id === 'DI-1700-T1').trainers, []);
-  assert.strictEqual(d.groepen.find(g => g.id === 'MA-1600-T1').duur, 90);
+ok('duo-trainer en de les van 1,5 uur', () => {
+  assert.deepStrictEqual(d.groepen.find(g => g.id === 'WO-1500-T1').trainers, ['Matt', 'Steffi']);
+  assert.strictEqual(d.groepen.find(g => g.id === 'MA-1600-T1T2').duur, 90);
+  assert.strictEqual(d.groepen.find(g => g.id === 'DI-1800-T1').trainers[0], 'Jan');
 });
 
 ok('les gegeven', () => {
@@ -53,8 +63,8 @@ ok('toekomst: wel "ging niet door"', () => {
   assert.ok(r.ok, r.fout);
 });
 ok('"andere" zonder tekst geweigerd, met tekst ok', () => {
-  assert.ok(!post({ actie: 'registreer', verzoek_id: 'a4', datum: '2026-10-13', groep_id: 'DI-1800-T1', status: 'niet_doorgegaan', reden: 'andere', ingevuld_door: 'Jebbe' }).ok);
-  const r = post({ actie: 'registreer', verzoek_id: 'a5', datum: '2026-10-13', groep_id: 'DI-1800-T1', status: 'niet_doorgegaan', reden: 'andere', reden_tekst: 'stroompanne', ingevuld_door: 'Jebbe' });
+  assert.ok(!post({ actie: 'registreer', verzoek_id: 'a4', datum: '2026-10-13', groep_id: 'DI-1800-T1', status: 'niet_doorgegaan', reden: 'andere', ingevuld_door: 'Jan' }).ok);
+  const r = post({ actie: 'registreer', verzoek_id: 'a5', datum: '2026-10-13', groep_id: 'DI-1800-T1', status: 'niet_doorgegaan', reden: 'andere', reden_tekst: 'stroompanne', ingevuld_door: 'Jan' });
   assert.ok(r.ok, r.fout);
   assert.strictEqual(r.registratie.reden, 'andere: stroompanne');
 });
@@ -96,11 +106,11 @@ ok('seintjes: één mail per trainer, alle open lessen samen', () => {
   const jan = tm.find(m => m.naam === 'Jan');
   assert.ok(jan.mag);
   assert.strictEqual(jan.aan, 'janclaessens@makefun.be');
-  assert.match(jan.tekst, /Ma 28\/9 16:00 Jeugd · T1/);
+  assert.match(jan.tekst, /Ma 28\/9 16:00 Jeugd · T1 \+ T2/);
   assert.ok(!/Rood B \(6-8j\)/.test(tom.tekst));
   // Steffi en Mat krijgen allebei de duo-groep
   assert.match(tm.find(m => m.naam === 'Steffi').tekst, /Wit en Blauw/);
-  assert.match(tm.find(m => m.naam === 'Mat').tekst, /Wit en Blauw/);
+  assert.match(tm.find(m => m.naam === 'Matt').tekst, /Wit en Blauw/);
   mails.length = 0;
   ctx.dagelijksSeintje(); // testdatum staat: testmodus, dus niets versturen
   assert.strictEqual(mails.length, 0);
@@ -132,6 +142,21 @@ ok('geen seintjes voor de reeks begint', () => {
   ctx.maandagMail();
   assert.strictEqual(mails.length, 0);
 });
+ok('werkPlanningBij: hernoemt, voegt toe en zet oude groepen stop', () => {
+  const sh = ss.getSheetByName('Trainers');
+  sh.d.forEach(r => { if (r[0] === 'Thibaud') { r[0] = 'Thibaut'; r[1] = 'thibaut@test'; r[4] = 'nee'; } });
+  const groepen = ss.getSheetByName('Groepen');
+  groepen.d.push(['OUD-0900-T1', 'ma', '09:00', '10:00', 60, 'T1', 'Oude groep', 'Tom', 'ja']);
+  ctx.werkPlanningBij();
+  const na = get();
+  assert.ok(na.trainers.includes('Thibaud') && !na.trainers.includes('Thibaut'));
+  const rij = ss.getSheetByName('Trainers').d.find(r => r[0] === 'Thibaud');
+  assert.strictEqual(rij[1], 'thibaut@test'); // mailadres behouden
+  assert.strictEqual(rij[4], 'nee');          // seintjes-instelling behouden
+  const oud = na.groepen.find(g => g.id === 'OUD-0900-T1');
+  assert.strictEqual(oud.actief, false);
+  assert.strictEqual(na.groepen.filter(g => g.actief !== false).length, 31);
+});
 ok('stopgezette groep: geschiedenis blijft, nieuwe registraties niet', () => {
   zetInstelling('testdatum', '2026-10-15');
   ss.getSheetByName('Groepen').d.forEach(r => { if (r[0] === 'DI-1800-T1') r[8] = 'nee'; });
@@ -141,7 +166,8 @@ ok('stopgezette groep: geschiedenis blijft, nieuwe registraties niet', () => {
   assert.ok(!post({ actie: 'registreer', verzoek_id: 'c1', datum: '2026-10-06', groep_id: 'DI-1800-T1', status: 'gegeven', gegeven_door: 'Jebbe', ingevuld_door: 'Jebbe' }).ok);
   const jebbe = ctx.bouwTrainerMails_('2026-10-22').find(m => m.naam === 'Jebbe');
   assert.ok(jebbe.tekst.includes('Vr 16/10 16:00'));
-  assert.ok(!jebbe.tekst.includes('Di 20/10 18:00')); // geen open lessen meer voor een stopgezette groep
+  assert.ok(jebbe.tekst.includes('Vr 16/10 17:00'));
+  assert.ok(!jebbe.tekst.includes('Di 20/10 18:00')); // die groep is van Jan, en is bovendien stopgezet
 });
 ok('formules in het Overzicht met ; (Belgische taalinstelling)', () => {
   const f = ss.getSheetByName('Overzicht').d.flat().filter(x => typeof x === 'string' && x.startsWith('='));
