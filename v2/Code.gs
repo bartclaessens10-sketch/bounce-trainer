@@ -466,6 +466,7 @@ function onOpen() {
     .addItem('Seintjes testen (naar mij)', 'testSeintjes')
     .addItem('Overzicht opnieuw opbouwen', 'bouwOverzicht')
     .addItem('Planning bijwerken (trainers en groepen)', 'werkPlanningBij')
+    .addItem('Lesweken bijwerken (vakanties)', 'werkLeswekenBij')
     .addToUi();
 }
 
@@ -556,7 +557,8 @@ const GROEPEN = [
   ['di', '18:00', '19:00', 'T1', 'Jeugd', 'Jan'],
   ['di', '20:30', '21:30', 'T1', 'Volwassenen', 'Bekin'],
   ['di', '21:30', '22:30', 'T1', 'Volwassenen', 'Bekin'],
-  ['wo', '15:00', '16:00', 'T1', 'Wit en Blauw (3-5j)', 'Matt, Steffi'],
+  ['wo', '15:00', '16:00', 'T1', 'Wit en Blauw (3-5j)', 'Matt'],
+  ['wo', '15:00', '16:00', 'T1', 'Wit en Blauw (3-5j)', 'Steffi'],
   ['wo', '15:00', '16:00', 'T2', 'Rood A (6-8j)', 'Tom'],
   ['wo', '15:00', '16:00', 'T3', 'Rood B (6-8j)', 'Jan'],
   ['wo', '16:00', '17:00', 'T1', 'Jeugd', 'Matt'],
@@ -583,8 +585,53 @@ const GROEPEN = [
   ['zo', '12:00', '13:00', 'T1', 'Jeugd', 'Bekin']
 ];
 
-function groepId_(r) {
-  return r[0].toUpperCase() + '-' + r[1].replace(':', '') + '-' + r[3].replace(/[^A-Za-z0-9]/g, '');
+/**
+ * De reeks en de weken zonder les (Jan, 28/9/2026).
+ * Een week staat op de maandag: valt die weg, dan vallen ook de zaterdag en de zondag weg.
+ * Het weekend vóór een vakantie is dus nog les, het weekend op het einde van de vakantie niet.
+ * 20 lesweken: 28/9 tot en met zondag 14/3.
+ */
+const REEKS = { start: '2026-09-28', einde: '2027-03-14' };
+const GEEN_LES = {
+  '2026-10-26': 'herfstvakantie',
+  '2026-12-21': 'kerstvakantie',
+  '2026-12-28': 'kerstvakantie',
+  '2027-02-08': 'krokusvakantie'
+};
+
+/** Rijen voor het tabblad Lesdata: een rij per week, de maandag. */
+function lesweken_() {
+  const uit = [];
+  for (let d = REEKS.start; d <= REEKS.einde; d = isoPlus_(d, 7)) {
+    uit.push([isoNaarCel_(d), GEEN_LES[d] ? 'nee' : 'ja', GEEN_LES[d] || '']);
+  }
+  return uit;
+}
+
+/** Lesdata en de begin- en einddatum van de reeks gelijkzetten met REEKS en GEEN_LES. */
+function werkLeswekenBij() {
+  const sh = ss_().getSheetByName(TAB.lesdata);
+  const weken = lesweken_();
+  const leeg = Math.max(weken.length, sh.getLastRow() - 1);
+  if (leeg > 0) sh.getRange(2, 1, leeg, KOP.Lesdata.length).clearContent();
+  sh.getRange(2, 1, weken.length, KOP.Lesdata.length).setValues(weken);
+
+  const inst = ss_().getSheetByName(TAB.instellingen);
+  inst.getDataRange().getValues().forEach(function (r, i) {
+    if (r[0] === 'reeks_start') inst.getRange(i + 1, 2).setValue(REEKS.start);
+    if (r[0] === 'reeks_einde') inst.getRange(i + 1, 2).setValue(REEKS.einde);
+  });
+  Logger.log('Lesweken bijgewerkt: ' + weken.filter(function (w) { return w[1] === 'ja'; }).length + ' lesweken.');
+}
+
+/** Groepen op hetzelfde uur en terrein (twee trainers, elk hun eigen blokje) krijgen een letter. */
+function groepId_(r, gebruikt) {
+  const basis = r[0].toUpperCase() + '-' + r[1].replace(':', '') + '-' + r[3].replace(/[^A-Za-z0-9]/g, '');
+  if (!gebruikt) return basis;
+  let id = basis;
+  for (let n = 2; gebruikt[id]; n++) id = basis + '-' + n;
+  gebruikt[id] = true;
+  return id;
 }
 
 /**
@@ -628,8 +675,9 @@ function schrijfTrainers_(bestaandeBijwerken) {
 }
 
 function schrijfGroepen_(bestaandeBijwerken) {
+  const gebruikt = {};
   const nieuw = GROEPEN.map(function (r) {
-    return [groepId_(r), r[0], r[1], r[2], minuten_(r[2]) - minuten_(r[1]), r[3], r[4], r[5], 'ja'];
+    return [groepId_(r, gebruikt), r[0], r[1], r[2], minuten_(r[2]) - minuten_(r[1]), r[3], r[4], r[5], 'ja'];
   });
   const sh = ss_().getSheetByName(TAB.groepen);
   if (!sh) return maakTab_(TAB.groepen, KOP.Groepen, nieuw, ['@', '@', '@', '@', '0', '@', '@', '@', '@']);
@@ -663,17 +711,7 @@ function setup() {
   schrijfTrainers_(false);
   schrijfGroepen_(false);
 
-  // Lesweken: een rij per week (de maandag). Vakanties op "nee".
-  const nee = {
-    '2026-10-26': 'herfstvakantie', '2026-11-02': 'herfstvakantie',
-    '2026-12-21': 'kerstvakantie', '2026-12-28': 'kerstvakantie',
-    '2027-02-08': 'krokusvakantie', '2027-02-15': 'krokusvakantie'
-  };
-  const weken = [];
-  for (let d = '2026-09-28'; d <= '2027-03-22'; d = isoPlus_(d, 7)) {
-    weken.push([isoNaarCel_(d), nee[d] ? 'nee' : 'ja', nee[d] ? nee[d] + ' (te bevestigen door Jan)' : '']);
-  }
-  maakTab_(TAB.lesdata, KOP.Lesdata, weken, ['dd/mm/yyyy', '@', '@']);
+  maakTab_(TAB.lesdata, KOP.Lesdata, lesweken_(), ['dd/mm/yyyy', '@', '@']);
 
   maakTab_(TAB.registraties, KOP.Registraties, [], ['dd/mm/yyyy hh:mm', 'dd/mm/yyyy', '@', '@', '@', '@', '@', '@', '@', '0', '@']);
 
@@ -682,8 +720,8 @@ function setup() {
     ['mail_jan', 'janclaessens@makefun.be', 'Krijgt elke maandag om 8:00 het weekoverzicht.'],
     ['bcc', Session.getEffectiveUser().getEmail(), 'Krijgt de maandagmail in bcc (standaard: wie setup draaide).'],
     ['app_url', 'https://bartclaessens10-sketch.github.io/bounce-trainer/v2/', 'Link in de seintjes.'],
-    ['reeks_start', '2026-09-28', 'Eerste lesdag van de reeks (jjjj-mm-dd).'],
-    ['reeks_einde', '2027-03-28', 'Laatste lesdag van de reeks (jjjj-mm-dd).'],
+    ['reeks_start', REEKS.start, 'Eerste lesdag van de reeks (jjjj-mm-dd).'],
+    ['reeks_einde', REEKS.einde, 'Laatste lesdag van de reeks (jjjj-mm-dd).'],
     ['testdatum', '', 'ALLEEN OM TE TESTEN: doet alsof het vandaag deze datum is. Leeg = echte datum.']
   ], ['@', '@', '@']);
 

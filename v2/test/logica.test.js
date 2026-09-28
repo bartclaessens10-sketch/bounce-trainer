@@ -13,7 +13,7 @@ const ok = (naam, fn) => { fn(); n++; console.log('ok  ' + naam); };
 
 const d = get();
 ok('31 blokjes, 10 trainers (planning Jan 28/9)', () => {
-  assert.strictEqual(d.groepen.length, 31);
+  assert.strictEqual(d.groepen.length, 32);
   assert.strictEqual(d.trainers.length, 10);
   assert.ok(d.trainers.includes('Thibaud') && d.trainers.includes('Mathieu') && d.trainers.includes('Matt'));
   // zondag hoort er nu bij, woensdag 14u en 18u niet meer
@@ -30,15 +30,19 @@ ok('20 lesweken per groep, vakanties eruit', () => {
   assert.strictEqual(wo.lessen[0], '2026-09-30');
   assert.strictEqual(wo.lessen[2], '2026-10-14');
   assert.ok(!wo.lessen.includes('2026-10-28'));
+  assert.ok(wo.lessen.includes('2026-11-11')); // Wapenstilstand: wel les
   assert.ok(!wo.lessen.includes('2026-12-23'));
-  assert.strictEqual(wo.lessen[19], '2027-03-24');
+  assert.strictEqual(wo.lessen[19], '2027-03-10');
   const za = d.groepen.find(g => g.id === 'ZA-1000-T2');
   assert.strictEqual(za.lessen[0], '2026-10-03');
   const zo = d.groepen.find(g => g.id === 'ZO-1100-T1');
   assert.strictEqual(zo.lessen[0], '2026-10-04');
+  assert.ok(!zo.lessen.includes('2026-11-01')); // het weekend op het einde van de herfstvakantie
+  assert.ok(zo.lessen.includes('2026-10-25')); // het weekend ervoor telt wel mee
 });
 ok('duo-trainer en de les van 1,5 uur', () => {
-  assert.deepStrictEqual(d.groepen.find(g => g.id === 'WO-1500-T1').trainers, ['Matt', 'Steffi']);
+  assert.deepStrictEqual(d.groepen.find(g => g.id === 'WO-1500-T1').trainers, ['Matt']);
+  assert.deepStrictEqual(d.groepen.find(g => g.id === 'WO-1500-T1-2').trainers, ['Steffi']);
   assert.strictEqual(d.groepen.find(g => g.id === 'MA-1600-T1T2').duur, 90);
   assert.strictEqual(d.groepen.find(g => g.id === 'DI-1800-T1').trainers[0], 'Jan');
 });
@@ -155,7 +159,7 @@ ok('werkPlanningBij: hernoemt, voegt toe en zet oude groepen stop', () => {
   assert.strictEqual(rij[4], 'nee');          // seintjes-instelling behouden
   const oud = na.groepen.find(g => g.id === 'OUD-0900-T1');
   assert.strictEqual(oud.actief, false);
-  assert.strictEqual(na.groepen.filter(g => g.actief !== false).length, 31);
+  assert.strictEqual(na.groepen.filter(g => g.actief !== false).length, 32);
 });
 ok('stopgezette groep: geschiedenis blijft, nieuwe registraties niet', () => {
   zetInstelling('testdatum', '2026-10-15');
