@@ -20,7 +20,7 @@ const TAB = {
 };
 
 const KOP = {
-  Trainers: ['naam', 'mail', 'gsm', 'actief', 'seintjes'],
+  Trainers: ['naam', 'mail', 'gsm', 'actief', 'seintjes'], // seintjes wordt niet meer gebruikt: enkel Jan krijgt mail
   Groepen: ['id', 'dag', 'start', 'einde', 'duur_min', 'terrein', 'naam', 'standaardtrainer', 'actief'],
   Lesdata: ['datum', 'lesweek', 'opmerking'],
   Registraties: ['tijdstip', 'datum', 'groep_id', 'status', 'gegeven_door', 'reden', 'opmerking', 'ingevuld_door', 'telt', 'duur_min', 'verzoek_id'],
@@ -348,29 +348,47 @@ function lesLabel_(datum, g) {
   return DAGKORT[weekdag_(datum)] + ' ' + Number(p[2]) + '/' + Number(p[1]) + ' ' + g.start + ' ' + g.naam + ' · ' + g.terrein;
 }
 
-/** Eén mail per trainer met al zijn open lessen. Trainer zonder mail of met seintjes "nee": geen mail. */
-function bouwTrainerMails_(vandaag) {
+/**
+ * De ochtendmail voor Jan: de lessen van gisteren waar nog niets voor ingevuld is,
+ * met de vaste trainer erbij, zodat hij die kan aanspreken. Staat er niets open,
+ * dan vertrekt er geen mail. Trainers krijgen zelf geen mail (keuze van Jan, 28/9).
+ */
+function bouwOchtendMailJan_(vandaag) {
   const inst = leesInstellingen_();
+  const gisteren = isoPlus_(vandaag, -1);
   const open = openLessen_(vandaag);
-  return leesTrainers_()
-    .filter(function (t) { return t.actief; })
-    .map(function (t) {
-      const zijn = open.filter(function (o) { return o.groep.trainers.indexOf(t.naam) >= 0; });
-      if (!zijn.length) return null;
-      const meer = zijn.length > 1;
-      return {
-        naam: t.naam,
-        aan: t.mail,
-        mag: !!t.mail && t.seintjes,
-        onderwerp: meer ? 'Bounce: vergeet je deze ' + zijn.length + ' lessen niet in te vullen?' : 'Bounce: vergeet je deze les niet in te vullen?',
-        tekst: 'Dag ' + t.naam + ',\n\n' +
-          (meer ? 'Deze lessen staan nog open' : 'Deze les staat nog open') + ' in de trainersapp:\n\n' +
-          zijn.map(function (o) { return '- ' + lesLabel_(o.datum, o.groep); }).join('\n') +
-          '\n\nEén tik per les volstaat: ' + (inst.app_url || '') +
-          '\n\nGaf iemand anders de les, of ging ze niet door? Dat kan je daar ook aanduiden.\n\nBounce'
-      };
-    })
-    .filter(Boolean);
+  const vanGisteren = open.filter(function (o) { return o.datum === gisteren; });
+  const ouder = open.filter(function (o) { return o.datum < gisteren; });
+  if (!vanGisteren.length && !ouder.length) return null;
+
+  const p = gisteren.split('-');
+  const dag = DAGKORT[weekdag_(gisteren)] + ' ' + Number(p[2]) + '/' + Number(p[1]);
+  const regels = ['Dag Jan,', ''];
+  if (vanGisteren.length) {
+    regels.push('Deze lessen van ' + dag + ' staan nog niet ingevuld:', '');
+    vanGisteren.forEach(function (o) {
+      regels.push('- ' + o.groep.start + ' ' + o.groep.naam + ' · ' + o.groep.terrein + ' · ' +
+        (o.groep.trainers.join(' en ') || 'trainer nog onbekend'));
+    });
+  } else {
+    regels.push('Alle lessen van ' + dag + ' zijn ingevuld.');
+  }
+  if (ouder.length) {
+    regels.push('', 'Ouder dan ' + dag + ' staan er nog ' + ouder.length + (ouder.length === 1 ? ' les' : ' lessen') + ' open:', '');
+    ouder.slice(0, 10).forEach(function (o) {
+      regels.push('- ' + lesLabel_(o.datum, o.groep) + ' · ' + (o.groep.trainers.join(' en ') || 'trainer nog onbekend'));
+    });
+    if (ouder.length > 10) regels.push('- en nog ' + (ouder.length - 10) + ' andere');
+  }
+  regels.push('', 'Zelf invullen kan in je overzicht: ' + (inst.app_url || '') + '?jan', '', 'Bounce trainersapp');
+  return {
+    aan: inst.mail_jan,
+    bcc: inst.bcc,
+    onderwerp: vanGisteren.length
+      ? 'Bounce: ' + vanGisteren.length + (vanGisteren.length === 1 ? ' les' : ' lessen') + ' van ' + dag + ' nog niet ingevuld'
+      : 'Bounce: nog ' + ouder.length + ' oudere lessen niet ingevuld',
+    tekst: regels.join('\n')
+  };
 }
 
 function bouwJanMail_(vandaag) {
@@ -413,16 +431,17 @@ function bouwJanMail_(vandaag) {
   };
 }
 
-/** Trigger: elke dag rond 12:00. */
+/** Trigger: elke dag rond 12:00. Enkel naar Jan, en enkel als er iets open staat. */
 function dagelijksSeintje() {
   const inst = leesInstellingen_();
   const vandaag = vandaagIso_(inst);
-  if (inst.testdatum) return; // testmodus: nooit echte seintjes versturen
+  if (inst.testdatum) return; // testmodus: nooit echte mails versturen
   if (inst.reeks_start && vandaag <= inst.reeks_start) return;
-  bouwTrainerMails_(vandaag).forEach(function (m) {
-    if (!m.mag) return;
-    MailApp.sendEmail({ to: m.aan, subject: m.onderwerp, body: m.tekst, name: 'Bounce trainersapp' });
-  });
+  const m = bouwOchtendMailJan_(vandaag);
+  if (!m || !m.aan) return;
+  const opties = { to: m.aan, subject: m.onderwerp, body: m.tekst, name: 'Bounce trainersapp' };
+  if (m.bcc) opties.bcc = m.bcc;
+  MailApp.sendEmail(opties);
 }
 
 /** Trigger: elke maandag rond 8:00. */
@@ -438,21 +457,19 @@ function maandagMail() {
   MailApp.sendEmail(opties);
 }
 
-/** Test: stuurt alle seintjes van vandaag naar jezelf (niet naar de trainers of Jan). */
+/** Test: stuurt de twee mails voor Jan naar jezelf, niet naar Jan. */
 function testSeintjes() {
   const ik = Session.getActiveUser().getEmail() || Session.getEffectiveUser().getEmail();
   const vandaag = vandaagIso_(leesInstellingen_());
-  const mails = bouwTrainerMails_(vandaag);
-  mails.forEach(function (m) {
-    MailApp.sendEmail({
-      to: ik,
-      subject: '[TEST voor ' + m.naam + (m.mag ? '' : ', zou NIET verstuurd worden: geen mail of seintjes uit') + '] ' + m.onderwerp,
-      body: m.tekst, name: 'Bounce trainersapp'
-    });
-  });
+  const ochtend = bouwOchtendMailJan_(vandaag);
+  if (ochtend) {
+    MailApp.sendEmail({ to: ik, subject: '[TEST ochtendmail Jan] ' + ochtend.onderwerp, body: ochtend.tekst, name: 'Bounce trainersapp' });
+  } else {
+    MailApp.sendEmail({ to: ik, subject: '[TEST ochtendmail Jan] geen mail: alles is ingevuld', body: 'Er staat niets open, dus Jan zou vandaag geen ochtendmail krijgen.', name: 'Bounce trainersapp' });
+  }
   const j = bouwJanMail_(vandaag);
-  MailApp.sendEmail({ to: ik, subject: '[TEST voor Jan] ' + j.onderwerp, body: j.tekst, name: 'Bounce trainersapp' });
-  Logger.log('Verstuurd naar ' + ik + ': ' + mails.length + ' trainersmail(s) en 1 mail voor Jan.');
+  MailApp.sendEmail({ to: ik, subject: '[TEST maandagmail Jan] ' + j.onderwerp, body: j.tekst, name: 'Bounce trainersapp' });
+  Logger.log('Twee testmails verstuurd naar ' + ik + '.');
 }
 
 function installeerTriggers() {
@@ -468,7 +485,7 @@ function installeerTriggers() {
 
 function onOpen() {
   SpreadsheetApp.getUi().createMenu('Bounce')
-    .addItem('Seintjes testen (naar mij)', 'testSeintjes')
+    .addItem('Mails voor Jan testen (naar mij)', 'testSeintjes')
     .addItem('Overzicht opnieuw opbouwen', 'bouwOverzicht')
     .addItem('Planning bijwerken (trainers en groepen)', 'werkPlanningBij')
     .addItem('Lesweken bijwerken (vakanties)', 'werkLeswekenBij')

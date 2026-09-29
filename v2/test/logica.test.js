@@ -118,28 +118,40 @@ ok('pincode', () => {
   assert.ok(post({ actie: 'pin', pin: '1234' }).ok);
   assert.ok(!post({ actie: 'pin', pin: '0000' }).ok);
 });
-ok('seintjes: één mail per trainer, alle open lessen samen', () => {
-  const tm = ctx.bouwTrainerMails_('2026-10-15');
-  const tom = tm.find(m => m.naam === 'Tom');
-  assert.ok(tom && !tom.mag); // Tom heeft (nog) geen mailadres
-  const jan = tm.find(m => m.naam === 'Jan');
-  assert.ok(jan.mag);
-  assert.strictEqual(jan.aan, 'janclaessens@makefun.be');
-  assert.match(jan.tekst, /Ma 28\/9 16:00 Staf Kusé · T1 \+ T2/);
-  assert.ok(!/Rood B \(6-8j\)/.test(tom.tekst));
-  // Steffi en Mat krijgen allebei de duo-groep
-  assert.match(tm.find(m => m.naam === 'Steffi').tekst, /Anna Uyttersprot/);
-  assert.match(tm.find(m => m.naam === 'Matt').tekst, /Anna Uyttersprot/);
+ok('ochtendmail: enkel naar Jan, met de trainer erbij', () => {
+  // gisteren (14/10) staan er lessen open, want alleen WO-1500-T2 is ingevuld
+  const m = ctx.bouwOchtendMailJan_('2026-10-15');
+  assert.strictEqual(m.aan, 'janclaessens@makefun.be');
+  assert.strictEqual(m.bcc, 'bart@test');
+  assert.match(m.onderwerp, /lessen van Wo 14\/10 nog niet ingevuld/);
+  assert.match(m.tekst, /15:00 Elin Van Haegenbergh · T3 · Jan/);
+  const gisterenBlok = m.tekst.split('Ouder dan')[0];
+  assert.ok(!gisterenBlok.includes('Antoine Claessens')); // die les van 14/10 is wel ingevuld
+  assert.match(m.tekst, /Ouder dan Wo 14\/10/);
+
   mails.length = 0;
   ctx.dagelijksSeintje(); // testdatum staat: testmodus, dus niets versturen
   assert.strictEqual(mails.length, 0);
   zetInstelling('testdatum', '');
   const echteDatum = ctx.vandaagIso_;
-  ctx.vandaagIso_ = () => '2026-10-15'; // echte datum nabootsen
+  ctx.vandaagIso_ = () => '2026-10-15';
   ctx.dagelijksSeintje();
   ctx.vandaagIso_ = echteDatum;
   zetInstelling('testdatum', '2026-10-15');
-  assert.deepStrictEqual(mails.map(m => m.to), ['janclaessens@makefun.be']);
+  assert.deepStrictEqual(mails.map(m2 => m2.to), ['janclaessens@makefun.be']); // geen trainersmails meer
+});
+ok('geen ochtendmail als alles ingevuld is', () => {
+  const leeg = maakOmgeving();
+  leeg.ctx.setup();
+  leeg.zetInstelling('testdatum', '2026-09-29');
+  // 28/9 volledig invullen
+  const d0 = JSON.parse(leeg.ctx.doGet({ parameter: { actie: 'data' } }).tekst);
+  let n = 0;
+  d0.groepen.filter(g => g.lessen.includes('2026-09-28')).forEach(g => {
+    const t2 = g.trainers[0] || 'Jan';
+    leeg.ctx.doPost({ postData: { contents: JSON.stringify({ actie: 'registreer', verzoek_id: 'v' + (n++), datum: '2026-09-28', groep_id: g.id, status: 'gegeven', gegeven_door: t2, ingevuld_door: t2 }) } });
+  });
+  assert.strictEqual(leeg.ctx.bouwOchtendMailJan_('2026-09-29'), null);
 });
 ok('maandagmail aan Jan met bcc', () => {
   zetInstelling('testdatum', '');
@@ -183,10 +195,9 @@ ok('stopgezette groep: geschiedenis blijft, nieuwe registraties niet', () => {
   assert.strictEqual(g.actief, false);
   assert.ok(get().registraties.some(r => r.groep_id === 'DI-1800-T1'));
   assert.ok(!post({ actie: 'registreer', verzoek_id: 'c1', datum: '2026-10-06', groep_id: 'DI-1800-T1', status: 'gegeven', gegeven_door: 'Jebbe', ingevuld_door: 'Jebbe' }).ok);
-  const jebbe = ctx.bouwTrainerMails_('2026-10-22').find(m => m.naam === 'Jebbe');
-  assert.ok(jebbe.tekst.includes('Vr 16/10 16:00'));
-  assert.ok(jebbe.tekst.includes('Vr 16/10 17:00'));
-  assert.ok(!jebbe.tekst.includes('Di 20/10 18:00')); // die groep is van Jan, en is bovendien stopgezet
+  const m = ctx.bouwOchtendMailJan_('2026-10-22');
+  assert.match(m.tekst, /Ouder dan/); // de oudere open lessen staan erbij
+  assert.ok(!m.tekst.includes('Di 20/10 18:00')); // die groep is stopgezet
 });
 ok('formules in het Overzicht met ; (Belgische taalinstelling)', () => {
   const f = ss.getSheetByName('Overzicht').d.flat().filter(x => typeof x === 'string' && x.startsWith('='));
