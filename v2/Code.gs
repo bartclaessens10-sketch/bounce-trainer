@@ -431,7 +431,7 @@ function bouwJanMail_(vandaag) {
   };
 }
 
-/** Trigger: elke dag rond 12:00. Enkel naar Jan, en enkel als er iets open staat. */
+/** Trigger: elke ochtend rond 8:00. Enkel naar Jan, en enkel als er iets open staat. */
 function dagelijksSeintje() {
   const inst = leesInstellingen_();
   const vandaag = vandaagIso_(inst);
@@ -476,9 +476,9 @@ function installeerTriggers() {
   ScriptApp.getProjectTriggers().forEach(function (t) {
     if (['dagelijksSeintje', 'maandagMail'].indexOf(t.getHandlerFunction()) >= 0) ScriptApp.deleteTrigger(t);
   });
-  ScriptApp.newTrigger('dagelijksSeintje').timeBased().everyDays(1).atHour(12).inTimezone('Europe/Brussels').create();
+  ScriptApp.newTrigger('dagelijksSeintje').timeBased().everyDays(1).atHour(8).inTimezone('Europe/Brussels').create();
   ScriptApp.newTrigger('maandagMail').timeBased().onWeekDay(ScriptApp.WeekDay.MONDAY).atHour(8).inTimezone('Europe/Brussels').create();
-  Logger.log('Triggers staan: elke dag rond 12:00 en elke maandag rond 8:00.');
+  Logger.log('Triggers staan: elke ochtend rond 8:00 (open lessen van gisteren) en elke maandag rond 8:00 (weekoverzicht).');
 }
 
 /* ------------------------------------------------------------------ menu in de Sheet */
@@ -489,6 +489,7 @@ function onOpen() {
     .addItem('Overzicht opnieuw opbouwen', 'bouwOverzicht')
     .addItem('Planning bijwerken (trainers en groepen)', 'werkPlanningBij')
     .addItem('Lesweken bijwerken (vakanties)', 'werkLeswekenBij')
+    .addItem('Mailmomenten opnieuw instellen', 'installeerTriggers')
     .addToUi();
 }
 
