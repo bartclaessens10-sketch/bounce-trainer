@@ -21,7 +21,7 @@ const TAB = {
 
 const KOP = {
   Trainers: ['naam', 'mail', 'gsm', 'actief', 'seintjes'], // seintjes wordt niet meer gebruikt: enkel Jan krijgt mail
-  Groepen: ['id', 'dag', 'start', 'einde', 'duur_min', 'terrein', 'naam', 'standaardtrainer', 'actief'],
+  Groepen: ['id', 'dag', 'start', 'einde', 'duur_min', 'terrein', 'naam', 'standaardtrainer', 'actief', 'vanaf', 'tot'],
   Lesdata: ['datum', 'lesweek', 'opmerking'],
   Registraties: ['tijdstip', 'datum', 'groep_id', 'status', 'gegeven_door', 'reden', 'opmerking', 'ingevuld_door', 'telt', 'duur_min', 'verzoek_id'],
   Instellingen: ['sleutel', 'waarde', 'uitleg']
@@ -56,6 +56,18 @@ function doPost(e) {
     const b = JSON.parse((e && e.postData && e.postData.contents) || '{}');
     if (b.actie === 'pin') {
       return json_(pinKlopt_(b.pin) ? { ok: true } : { ok: false, fout: 'Verkeerde pincode.' });
+    }
+    if (b.actie === 'registreerVeel') {
+      const lock = LockService.getScriptLock();
+      lock.waitLock(30000);
+      try {
+        const uit = (b.items || []).map(function (it) {
+          return registreer_(Object.assign({ pin: b.pin, ingevuld_door: b.ingevuld_door }, it));
+        });
+        return json_({ ok: true, resultaten: uit });
+      } finally {
+        lock.releaseLock();
+      }
     }
     if (b.actie === 'registreer') {
       const lock = LockService.getScriptLock();
@@ -155,7 +167,10 @@ function leesGroepen_() {
         terrein: String(r[5]).trim(),
         naam: String(r[6]).trim(),
         trainers: splitsTrainers_(r[7]),
-        actief: jaNee_(r[8], true)
+        actief: jaNee_(r[8], true),
+        // leeg = de hele reeks. Ingevuld = deze groep loopt korter (bv. een reeks van 10 weken)
+        vanaf: naarIso_(r[9]),
+        tot: naarIso_(r[10])
       };
     });
 }
@@ -190,6 +205,8 @@ function lessenVan_(g, inst, kaart) {
   let d = inst.reeks_start;
   while (weekdag_(d) !== DAGNR[g.dag]) d = isoPlus_(d, 1);
   for (; d <= inst.reeks_einde; d = isoPlus_(d, 7)) {
+    if (g.vanaf && d < g.vanaf) continue;
+    if (g.tot && d > g.tot) continue;
     if (isLesdag_(d, kaart)) uit.push(d);
   }
   return uit;
@@ -573,8 +590,11 @@ const TRAINERS = [
 const HERNOEM = { 'Thibaut': 'Thibaud', 'Mat': 'Matt' };
 
 /**
- * dag, start, einde, terrein, naam, trainer. Eén blokje per trainer die dat uur geeft.
+ * dag, start, einde, terrein, naam, trainer, [vanaf], [tot].
+ * Eén blokje per trainer die dat uur geeft.
  * De naam van een groep is de naam van één speler uit die groep (afspraak met Jan, 28/9).
+ * vanaf en tot zijn optioneel: laat ze leeg voor een groep die de hele reeks meedraait,
+ * en vul ze in voor een kortere reeks (bv. tien weken) of een groep die later start.
  */
 const GROEPEN = [
   ['ma', '16:00', '17:30', 'T1 + T2', 'Staf Kusé', 'Jan'],
@@ -703,17 +723,18 @@ function schrijfTrainers_(bestaandeBijwerken) {
 function schrijfGroepen_(bestaandeBijwerken) {
   const gebruikt = {};
   const nieuw = GROEPEN.map(function (r) {
-    return [groepId_(r, gebruikt), r[0], r[1], r[2], minuten_(r[2]) - minuten_(r[1]), r[3], r[4], r[5], 'ja'];
+    return [groepId_(r, gebruikt), r[0], r[1], r[2], minuten_(r[2]) - minuten_(r[1]), r[3], r[4], r[5], 'ja',
+      r[6] ? isoNaarCel_(r[6]) : '', r[7] ? isoNaarCel_(r[7]) : ''];
   });
   const sh = ss_().getSheetByName(TAB.groepen);
-  if (!sh) return maakTab_(TAB.groepen, KOP.Groepen, nieuw, ['@', '@', '@', '@', '0', '@', '@', '@', '@']);
+  if (!sh) return maakTab_(TAB.groepen, KOP.Groepen, nieuw, ['@', '@', '@', '@', '0', '@', '@', '@', '@', 'dd/mm/yyyy', 'dd/mm/yyyy']);
   if (!bestaandeBijwerken && sh.getLastRow() > 1) return sh;
 
   const ids = {};
   nieuw.forEach(function (r) { ids[r[0]] = true; });
   rijen_(TAB.groepen).forEach(function (r) {
     const id = String(r[0]).trim();
-    if (id && !ids[id]) nieuw.push([id, r[1], r[2], r[3], r[4], r[5], r[6], r[7], 'nee']);
+    if (id && !ids[id]) nieuw.push([id, r[1], r[2], r[3], r[4], r[5], r[6], r[7], 'nee', r[9] || '', r[10] || '']);
   });
   const leeg = Math.max(nieuw.length, sh.getLastRow() - 1);
   if (leeg > 0) sh.getRange(2, 1, leeg, KOP.Groepen.length).clearContent();

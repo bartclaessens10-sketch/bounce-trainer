@@ -114,6 +114,36 @@ ok('een les weer leeg maken (wissen)', () => {
   // wissen van een lege les kan niet
   assert.ok(!post({ actie: 'registreer', verzoek_id: 'w4', datum: '2026-10-12', groep_id: 'MA-1900-T1', status: 'gewist', ingevuld_door: 'Thibaud' }).ok);
 });
+ok('een groep die korter loopt (vanaf en tot)', () => {
+  const sh = ss.getSheetByName('Groepen');
+  const rij = sh.d.find(r => r[0] === 'WO-1600-T1');
+  rij[9] = new Date(2026, 8, 30, 12);  // vanaf wo 30/9
+  rij[10] = new Date(2026, 11, 9, 12); // tot en met wo 9/12
+  const g = get().groepen.find(x => x.id === 'WO-1600-T1');
+  assert.strictEqual(g.lessen.length, 10); // tien weken, herfstvakantie valt ertussenuit
+  assert.strictEqual(g.lessen[0], '2026-09-30');
+  assert.strictEqual(g.lessen[9], '2026-12-09');
+  assert.ok(!g.lessen.includes('2026-10-28')); // vakantie
+  // buiten de periode kan je niets registreren
+  assert.ok(!post({ actie: 'registreer', verzoek_id: 'k1', datum: '2026-12-16', groep_id: 'WO-1600-T1', status: 'gegeven', gegeven_door: 'Matt', ingevuld_door: 'Matt' }).ok);
+  // de andere groepen blijven op twintig
+  assert.strictEqual(get().groepen.find(x => x.id === 'WO-1600-T2').lessen.length, 20);
+  rij[9] = ''; rij[10] = '';
+});
+ok('een hele dag in één oproep registreren', () => {
+  const dag = '2026-10-12'; // maandag
+  const d2 = get();
+  const maandag = d2.groepen.filter(g => g.actief !== false && g.lessen.includes(dag));
+  assert.ok(maandag.length >= 3);
+  const items = maandag.map((g, i) => ({ verzoek_id: 'bulk' + i, datum: dag, groep_id: g.id, status: 'gegeven', gegeven_door: g.trainers[0] }));
+  const r = JSON.parse(ctx.doPost({ postData: { contents: JSON.stringify({ actie: 'registreerVeel', items: items, ingevuld_door: 'Jan', pin: '1234' }) } }).tekst);
+  assert.ok(r.ok);
+  assert.strictEqual(r.resultaten.length, items.length);
+  assert.ok(r.resultaten.every(x => x.ok), JSON.stringify(r.resultaten.filter(x => !x.ok)));
+  const na = get().registraties.filter(x => x.datum === dag);
+  assert.strictEqual(na.length, items.length);
+  assert.strictEqual(na[0].ingevuld_door, 'Jan (beheer)');
+});
 ok('pincode', () => {
   assert.ok(post({ actie: 'pin', pin: '1234' }).ok);
   assert.ok(!post({ actie: 'pin', pin: '0000' }).ok);

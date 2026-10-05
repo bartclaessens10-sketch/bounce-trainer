@@ -260,6 +260,15 @@ function regKaart() {
   const k = {};
   (S.data ? S.data.registraties : []).forEach(r => { k[sleutel(r.datum, r.groep_id)] = r; });
   S.wachtrij.forEach(w => {
+    if (w.items) { // een hele dag in één keer
+      w.items.forEach(it => {
+        k[sleutel(it.datum, it.groep_id)] = {
+          datum: it.datum, groep_id: it.groep_id, status: 'gegeven', gegeven_door: it.gegeven_door,
+          reden: '', opmerking: '', ingevuld_door: w.ingevuld_door, sinds: w.tijdstip, tijdstip: w.tijdstip, wacht: true
+        };
+      });
+      return;
+    }
     if (w.status === 'gewist') { delete k[sleutel(w.datum, w.groep_id)]; return; }
     const vorige = k[sleutel(w.datum, w.groep_id)];
     k[sleutel(w.datum, w.groep_id)] = {
@@ -323,7 +332,9 @@ async function verstuur(naTik) {
   bezig = true;
   while (S.wachtrij.length) {
     const w = S.wachtrij[0];
-    const body = Object.assign({ actie: 'registreer' }, w);
+    const body = w.items
+      ? { actie: 'registreerVeel', items: w.items, ingevuld_door: w.ingevuld_door }
+      : Object.assign({ actie: 'registreer' }, w);
     delete body.beheer;
     if (w.beheer) body.pin = S.pin || '';
     let res;
@@ -333,7 +344,19 @@ async function verstuur(naTik) {
     }
     S.wachtrij.shift();
     lsSet('bt2_wachtrij', S.wachtrij);
-    if (res.ok) {
+    if (res.ok && res.resultaten) { // een hele dag in één keer
+      let gelukt = 0;
+      res.resultaten.forEach(r => {
+        if (!r.ok || !r.registratie) return;
+        gelukt++;
+        S.data.registraties = S.data.registraties
+          .filter(x => !(x.datum === r.registratie.datum && x.groep_id === r.registratie.groep_id))
+          .concat([r.registratie]);
+      });
+      lsSet('bt2_data', S.data);
+      const mislukt = res.resultaten.length - gelukt;
+      toast(gelukt + (gelukt === 1 ? ' les opgeslagen' : ' lessen opgeslagen') + (mislukt ? ', ' + mislukt + ' niet' : ' ✓'), mislukt > 0);
+    } else if (res.ok) {
       const lijst = S.data.registraties.filter(r => !(r.datum === res.registratie.datum && r.groep_id === res.registratie.groep_id));
       if (!res.gewist && res.registratie.status !== 'gewist') lijst.push(res.registratie);
       S.data.registraties = lijst;
@@ -375,6 +398,22 @@ function bewaar(g, iso, velden) {
   sluitBlad();
   render();
   toast(navigator.onLine === false ? 'Geen verbinding. Bewaard op je gsm, wordt vanzelf verstuurd.' : 'Versturen…');
+  verstuur(true);
+}
+
+// Alle open lessen van één dag in één keer, elk op naam van de vaste trainer.
+function bewaarDag(lijst) {
+  const w = {
+    items: lijst.map(x => ({
+      verzoek_id: nieuweId(), datum: x.iso, groep_id: x.g.id,
+      status: 'gegeven', gegeven_door: x.g.trainers[0]
+    })),
+    ingevuld_door: S.ik || 'Jan', tijdstip: new Date().toISOString(), beheer: !!S.pin
+  };
+  S.wachtrij.push(w);
+  lsSet('bt2_wachtrij', S.wachtrij);
+  render();
+  toast(lijst.length + ' lessen worden opgeslagen…');
   verstuur(true);
 }
 
@@ -727,18 +766,34 @@ function renderJan() {
 
   // Nog in te vullen: oudste eerst, met de vaste trainer als voorstel
   if (open.length) {
-    const toon = S.toonAlleJanOpen ? open : open.slice(0, 10);
+    // per dag groeperen: zo ziet Jan een dag in één blok en kan hij die in één tik afwerken
+    const dagen = [];
+    open.forEach(o => {
+      let d = dagen.find(x => x.iso === o.iso);
+      if (!d) dagen.push(d = { iso: o.iso, lessen: [] });
+      d.lessen.push(o);
+    });
+    const toonDagen = S.toonAlleJanOpen ? dagen : dagen.slice(0, 2);
     html += '<section class="open"><h2>Nog in te vullen (' + open.length + ')</h2>' +
-      '<p class="sub" style="margin:0 0 4px">Oudste eerst. Klopt het voorstel, tik dan op de gele knop.</p>' +
-      toon.map(o => {
+      '<p class="sub" style="margin:0 0 4px">Per dag. Ging alles door zoals gepland, dan volstaat één tik.</p>';
+    toonDagen.forEach(d => {
+      const dagNaam = DAGEN[wd(d.iso)];
+      const metTrainer = d.lessen.filter(o => o.g.trainers.filter(t => S.data.trainers.indexOf(t) >= 0).length);
+      html += '<h3>' + dagNaam.charAt(0).toUpperCase() + dagNaam.slice(1) + ' ' + dm(d.iso) + ' · ' + d.lessen.length +
+        (d.lessen.length === 1 ? ' les' : ' lessen') + '</h3>';
+      if (metTrainer.length > 1) {
+        html += '<button class="knop klein hoofd" data-dagok="' + d.iso + '">✓ Alles verliep zoals gepland (' + metTrainer.length + ')</button>';
+      }
+      html += d.lessen.map(o => {
         const voorstel = o.g.trainers.filter(t => S.data.trainers.indexOf(t) >= 0);
-        return '<div class="janopen"><div><b>' + esc(kort(o.g, o.iso)) + '</b> · ' + esc(o.g.naam) + ' · ' + esc(o.g.terrein) +
+        return '<div class="janopen"><div><b>' + o.g.start + '</b> · ' + esc(o.g.naam) + ' · ' + esc(o.g.terrein) +
           '<br><span class="klein">Normaal: ' + esc(trainersTekst(o.g)) + '</span></div>' +
           voorstel.map(t => '<button class="knop klein hoofd" data-snel="' + o.g.id + '|' + o.iso + '|' + esc(t) + '">✓ Gegeven door ' + esc(t) + '</button>').join('') +
           '<button class="knop klein" data-g="' + o.g.id + '" data-d="' + o.iso + '">' + (voorstel.length ? 'Anders…' : 'Invullen…') + '</button></div>';
-      }).join('') +
-      (open.length > 10 && !S.toonAlleJanOpen ? '<button class="meer" id="meerjan">Toon alle ' + open.length + '</button>' : '') +
-      '</section>';
+      }).join('');
+    });
+    if (dagen.length > toonDagen.length) html += '<button class="meer" id="meerjan">Toon de andere ' + (dagen.length - toonDagen.length) + ' dagen</button>';
+    html += '</section>';
   } else {
     html += '<div class="melding" style="margin-top:16px">Alles is ingevuld.</div>';
   }
@@ -784,6 +839,12 @@ function renderJan() {
   document.querySelectorAll('[data-m]').forEach(b => b.onclick = () => { S.janMaand = b.dataset.m; render(); });
   document.querySelectorAll('[data-t]').forEach(b => b.onclick = () => { S.janOpen[b.dataset.t] = !S.janOpen[b.dataset.t]; render(); });
   document.querySelectorAll('[data-g]').forEach(b => b.onclick = () => openBlad(groep(b.dataset.g), b.dataset.d));
+  document.querySelectorAll('[data-dagok]').forEach(b => b.onclick = () => {
+    const iso = b.dataset.dagok;
+    const R2 = regKaart();
+    const lijst = openLessen(R2).filter(o => o.iso === iso && o.g.trainers.filter(t => S.data.trainers.indexOf(t) >= 0).length);
+    if (lijst.length) bewaarDag(lijst);
+  });
   document.querySelectorAll('[data-snel]').forEach(b => b.onclick = () => {
     const [gid, iso, naam] = b.dataset.snel.split('|');
     bewaar(groep(gid), iso, { status: 'gegeven', gegeven_door: naam, opmerking: '' });
