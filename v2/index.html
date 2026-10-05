@@ -342,6 +342,16 @@ async function verstuur(naTik) {
       if (naTik) toast('Geen verbinding. Bewaard op je gsm, wordt vanzelf verstuurd.');
       break;
     }
+    // De server kent 'registreerVeel' pas na een nieuwe implementatie.
+    // Zolang dat niet gebeurd is: de dag alsnog les per les versturen.
+    if (w.items && res && !res.ok && /Onbekende actie/i.test(res.fout || '')) {
+      S.wachtrij.shift();
+      S.wachtrij.unshift(...w.items.map(it => Object.assign({
+        ingevuld_door: w.ingevuld_door, tijdstip: w.tijdstip, beheer: w.beheer, opmerking: ''
+      }, it)));
+      lsSet('bt2_wachtrij', S.wachtrij);
+      continue;
+    }
     S.wachtrij.shift();
     lsSet('bt2_wachtrij', S.wachtrij);
     if (res.ok && res.resultaten) { // een hele dag in één keer
