@@ -106,6 +106,7 @@ function leesAlles_() {
       return {
         id: g.id, dag: g.dag, start: g.start, einde: g.einde, duur: g.duur,
         terrein: g.terrein, naam: g.naam, trainers: g.trainers, actief: g.actief,
+        vanaf: g.vanaf, tot: g.tot,
         lessen: lessenVan_(g, inst, kaart)
       };
     }),
@@ -583,7 +584,9 @@ const TRAINERS = [
   ['Matt', ''],
   ['Mathieu', ''],
   ['Amir', ''],
-  ['Luna', '']
+  ['Luna', ''],
+  ['Jolien', ''],
+  ['Laura', '']
 ];
 
 /** Trainers met een andere schrijfwijze: oude naam -> nieuwe naam. */
@@ -603,6 +606,7 @@ const GROEPEN = [
   ['di', '18:00', '19:00', 'T1', 'Warre Van Havere', 'Jan'],
   ['di', '20:30', '21:30', 'T1', 'Steffie', 'Bekin'],
   ['di', '21:30', '22:30', 'T1', 'Karel Buyse', 'Bekin'],
+  ['wo', '14:00', '15:00', 'T2', 'Maria', 'Matt', '2026-09-30', '2026-12-09'],
   ['wo', '15:00', '16:00', 'T1', 'Anna Uyttersprot', 'Matt'],
   ['wo', '15:00', '16:00', 'T1', 'Anna Uyttersprot', 'Steffi'],
   ['wo', '15:00', '16:00', 'T2', 'Antoine Claessens', 'Tom'],
@@ -619,11 +623,11 @@ const GROEPEN = [
   ['do', '18:00', '19:00', 'T1', 'Celeste Martin', 'Luna'],
   ['do', '19:00', '20:00', 'T1', 'Jaiden Smolders', 'Luna'],
   ['do', '20:00', '21:00', 'T1', 'Barbara Van Cleemput', 'Luna'],
-  ['vr', '16:00', '17:00', 'T1', 'Louis Luyckx', 'Matt'],
-  ['vr', '16:00', '17:00', 'T2', 'Louis Luyckx', 'Jebbe'],
+  ['vr', '16:00', '17:00', 'T1', 'Juliette', 'Matt'],
+  ['vr', '16:00', '17:00', 'T2', 'Staf', 'Jebbe'],
   ['vr', '17:00', '18:00', 'T1', 'Josse Vanderoost', 'Jebbe'],
   ['vr', '18:00', '19:00', 'T1', 'Dries Buytaert', 'Jebbe'],
-  ['za', '10:00', '11:00', 'T2', 'Benjamin Manso', 'Matt'],
+  ['za', '10:00', '11:00', 'T2', 'Lars', 'Matt'],
   ['za', '10:00', '11:00', 'T3', 'Laura Rennen', 'Mathieu'],
   ['za', '11:00', '12:00', 'T2', 'Gwen Van Nuffelen', 'Mathieu'],
   ['za', '11:00', '12:00', 'T3', 'Julian Smolders', 'Matt'],

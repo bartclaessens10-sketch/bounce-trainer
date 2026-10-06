@@ -12,20 +12,28 @@ let n = 0;
 const ok = (naam, fn) => { fn(); n++; console.log('ok  ' + naam); };
 
 const d = get();
-ok('31 blokjes, 10 trainers (planning Jan 28/9)', () => {
-  assert.strictEqual(d.groepen.length, 32);
-  assert.strictEqual(d.trainers.length, 10);
+ok('33 blokjes, 12 trainers (planning Jan, bijgewerkt 6/10)', () => {
+  assert.strictEqual(d.groepen.length, 33);
+  assert.strictEqual(d.trainers.length, 12);
   assert.ok(d.trainers.includes('Thibaud') && d.trainers.includes('Mathieu') && d.trainers.includes('Matt'));
-  // zondag hoort er nu bij, woensdag 14u en 18u niet meer
+  // zondag hoort er nu bij, woensdag 18u niet meer
   assert.ok(d.groepen.some(g => g.dag === 'zo' && g.start === '11:00'));
-  assert.ok(!d.groepen.some(g => g.start === '14:00'));
   assert.ok(!d.groepen.some(g => g.dag === 'wo' && g.start === '18:00'));
+  // de nieuwe woensdaggroep van 14:00 loopt tien weken, van 30/9 tot en met 9/12
+  const maria = d.groepen.find(g => g.id === 'WO-1400-T2');
+  assert.strictEqual(maria.naam, 'Maria');
+  assert.strictEqual(maria.lessen.length, 10);
+  assert.strictEqual(maria.lessen[0], '2026-09-30');
+  assert.strictEqual(maria.lessen[9], '2026-12-09');
+  // de twee vrijdagblokjes van 16:00 heten niet meer hetzelfde
+  assert.deepStrictEqual(d.groepen.filter(g => g.dag === 'vr' && g.start === '16:00').map(g => g.naam).sort(), ['Juliette', 'Staf']);
   // vrijdag 16u is gesplitst: elk zijn eigen blokje
   const vr = d.groepen.filter(g => g.dag === 'vr' && g.start === '16:00');
   assert.deepStrictEqual(vr.map(g => g.trainers.join()).sort(), ['Jebbe', 'Matt']);
 });
 ok('20 lesweken per groep, vakanties eruit', () => {
-  d.groepen.forEach(g => assert.strictEqual(g.lessen.length, 20, g.id));
+  // behalve de groepen met een eigen begin- of einddatum
+  d.groepen.filter(g => !g.vanaf && !g.tot).forEach(g => assert.strictEqual(g.lessen.length, 20, g.id));
   const wo = d.groepen.find(g => g.id === 'WO-1500-T2');
   assert.strictEqual(wo.lessen[0], '2026-09-30');
   assert.strictEqual(wo.lessen[2], '2026-10-14');
@@ -216,7 +224,7 @@ ok('werkPlanningBij: hernoemt, voegt toe en zet oude groepen stop', () => {
   assert.strictEqual(rij[4], 'nee');          // seintjes-instelling behouden
   const oud = na.groepen.find(g => g.id === 'OUD-0900-T1');
   assert.strictEqual(oud.actief, false);
-  assert.strictEqual(na.groepen.filter(g => g.actief !== false).length, 32);
+  assert.strictEqual(na.groepen.filter(g => g.actief !== false).length, 33);
 });
 ok('stopgezette groep: geschiedenis blijft, nieuwe registraties niet', () => {
   zetInstelling('testdatum', '2026-10-15');
